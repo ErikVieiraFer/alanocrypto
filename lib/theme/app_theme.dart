@@ -28,7 +28,7 @@ class AppTheme {
     inputDecorationTheme: InputDecorationTheme(
       labelStyle: const TextStyle(color: white),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: white.withOpacity(0.5)),
+        borderSide: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.5)),
         borderRadius: BorderRadius.circular(8.0),
       ),
       focusedBorder: OutlineInputBorder(
