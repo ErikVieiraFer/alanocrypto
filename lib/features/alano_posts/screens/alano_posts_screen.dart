@@ -10,7 +10,6 @@ class AlanoPostsScreen extends StatefulWidget {
 }
 
 class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
-  // Posts mockados do Alano
   final List<Map<String, dynamic>> _alanoPosts = [
     {
       'id': '1',
@@ -46,12 +45,16 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBlueBackground,
+      backgroundColor: backgroundColor,
       body: RefreshIndicator(
         onRefresh: _refreshPosts,
-        color: AppTheme.greenPrimary,
-        backgroundColor: AppTheme.darkBlueSecondary,
+        color: primaryColor,
+        backgroundColor: secondaryBackground,
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: _alanoPosts.length,
@@ -64,10 +67,17 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
   }
 
   Widget _buildPostCard(Map<String, dynamic> post) {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
+    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueSecondary,
+        color: secondaryBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -82,16 +92,16 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppTheme.greenPrimary,
+                      color: primaryColor,
                       width: 2,
                     ),
                   ),
                   child: CircleAvatar(
                     radius: 16,
-                    backgroundColor: AppTheme.greenPrimary.withOpacity(0.2),
-                    child: const Icon(
+                    backgroundColor: primaryColor20,
+                    child: Icon(
                       Icons.person,
-                      color: AppTheme.greenPrimary,
+                      color: primaryColor,
                       size: 16,
                     ),
                   ),
@@ -103,10 +113,10 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                     children: [
                       Row(
                         children: [
-                          const Text(
+                          Text(
                             'Alano',
                             style: TextStyle(
-                              color: AppTheme.white,
+                              color: textColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -114,7 +124,7 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                           const SizedBox(width: 4),
                           Icon(
                             Icons.verified,
-                            color: AppTheme.greenPrimary,
+                            color: primaryColor,
                             size: 16,
                           ),
                         ],
@@ -122,7 +132,7 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                       Text(
                         _formatDate(post['date']),
                         style: TextStyle(
-                          color: AppTheme.white.withOpacity(0.6),
+                          color: textColor60,
                           fontSize: 12,
                         ),
                       ),
@@ -133,7 +143,6 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
             ),
           ),
 
-          // Conteúdo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -141,8 +150,8 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
               children: [
                 Text(
                   post['title'],
-                  style: const TextStyle(
-                    color: AppTheme.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -150,8 +159,8 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                 const SizedBox(height: 8),
                 Text(
                   post['content'],
-                  style: const TextStyle(
-                    color: AppTheme.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 14,
                   ),
                 ),
@@ -160,20 +169,19 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
           ),
 
           const SizedBox(height: 16),
-          // Thumbnail do vídeo (simulado)
           Container(
             height: 200,
             margin: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: AppTheme.darkBlueBackground,
+              color: backgroundColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.play_circle_outline,
-                  color: AppTheme.greenPrimary,
+                  color: primaryColor,
                   size: 64,
                 ),
                 Positioned(
@@ -185,7 +193,7 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: AppTheme.black70,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Row(
@@ -213,7 +221,6 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
 
           const SizedBox(height: 16),
 
-          // Stats e ações
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -221,22 +228,28 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
                 _buildStatChip(
                   Icons.remove_red_eye,
                   '${post['views']}',
+                  backgroundColor,
+                  textColor,
                 ),
                 const SizedBox(width: 12),
                 _buildStatChip(
                   Icons.favorite,
                   '${post['likes']}',
+                  backgroundColor,
+                  textColor,
                 ),
                 const SizedBox(width: 12),
                 _buildStatChip(
                   Icons.comment,
                   '${post['comments']}',
+                  backgroundColor,
+                  textColor,
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.share,
-                    color: AppTheme.white,
+                    color: textColor,
                   ),
                   onPressed: () => _sharePost(post),
                 ),
@@ -250,21 +263,26 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
     );
   }
 
-  Widget _buildStatChip(IconData icon, String value) {
+  Widget _buildStatChip(
+    IconData icon,
+    String value,
+    Color backgroundColor,
+    Color textColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueBackground,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.white, size: 14),
+          Icon(icon, color: textColor, size: 14),
           const SizedBox(width: 4),
           Text(
             value,
-            style: const TextStyle(
-              color: AppTheme.white,
+            style: TextStyle(
+              color: textColor,
               fontSize: 12,
             ),
           ),
@@ -290,6 +308,5 @@ class _AlanoPostsScreenState extends State<AlanoPostsScreen> {
   }
 
   void _sharePost(Map<String, dynamic> post) {
-    // Implementar compartilhamento
   }
 }

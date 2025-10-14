@@ -26,20 +26,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const SignalsScreen(),
   ];
 
-  final List<String> _titles = [
-    'Home',
-    'Perfil',
-    'Posts do Alano',
-    'AI Chat',
-    'Sinais',
-  ];
+// final List<String> _titles = [
+//    'Home',
+//    'Perfil',
+//    'Posts do Alano',
+//    'AI Chat',
+//    'Sinais',
+//  ];
 
   @override
   Widget build(BuildContext context) {
+    final textColor = AppTheme.getTextColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBlueBackground,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.darkBlueSecondary,
+        backgroundColor: secondaryBackground,
         elevation: 0,
         title: Row(
           children: [
@@ -47,12 +53,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color.fromRGBO(0, 255, 1, 0.2),
+                color: primaryColor20,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.currency_bitcoin,
-                color: AppTheme.greenPrimary,
+                color: primaryColor,
                 size: 20,
               ),
             ),
@@ -66,10 +72,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'AlanoCryptoFX',
               style: TextStyle(
-                color: AppTheme.white,
+                color: textColor,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -80,9 +86,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Stack(
             children: [
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.notifications_outlined,
-                  color: AppTheme.white,
+                  color: textColor,
                 ),
                 onPressed: () {
                   _showNotifications(context);
@@ -99,7 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: Colors.red,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: AppTheme.darkBlueSecondary,
+                        color: secondaryBackground,
                         width: 2,
                       ),
                     ),
@@ -116,10 +122,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppTheme.darkBlueSecondary,
+          color: secondaryBackground,
           boxShadow: [
             BoxShadow(
-              color: const Color.fromRGBO(0, 0, 0, 0.3),
+              color: AppTheme.black30,
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -136,30 +142,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   activeIcon: Icons.home,
                   label: 'Home',
                   index: 0,
+                  textColor: textColor,
+                  primaryColor: primaryColor,
+                  primaryColor20: primaryColor20,
                 ),
                 _buildNavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: 'Perfil',
                   index: 1,
+                  textColor: textColor,
+                  primaryColor: primaryColor,
+                  primaryColor20: primaryColor20,
                 ),
                 _buildNavItem(
                   icon: FontAwesomeIcons.youtube,
                   activeIcon: FontAwesomeIcons.youtube,
                   label: 'Alano',
                   index: 2,
+                  textColor: textColor,
+                  primaryColor: primaryColor,
+                  primaryColor20: primaryColor20,
                 ),
                 _buildNavItem(
                   icon: Icons.chat_bubble_outline,
                   activeIcon: Icons.chat_bubble,
                   label: 'AI Chat',
                   index: 3,
+                  textColor: textColor,
+                  primaryColor: primaryColor,
+                  primaryColor20: primaryColor20,
                 ),
                 _buildNavItem(
                   icon: Icons.trending_up_outlined,
                   activeIcon: Icons.trending_up,
                   label: 'Sinais',
                   index: 4,
+                  textColor: textColor,
+                  primaryColor: primaryColor,
+                  primaryColor20: primaryColor20,
                 ),
               ],
             ),
@@ -174,6 +195,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required IconData activeIcon,
     required String label,
     required int index,
+    required Color textColor,
+    required Color primaryColor,
+    required Color primaryColor20,
   }) {
     final isActive = _currentIndex == index;
 
@@ -186,9 +210,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive
-              ? const Color.fromRGBO(0, 255, 1, 0.1)
-              : Colors.transparent,
+          color: isActive ? primaryColor20 : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -196,14 +218,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Icon(
               isActive ? activeIcon : icon,
-              color: isActive ? AppTheme.greenPrimary : AppTheme.white,
+              color: isActive ? primaryColor : textColor,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isActive ? AppTheme.greenPrimary : AppTheme.white,
+                color: isActive ? primaryColor : textColor,
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               ),
@@ -215,9 +237,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showNotifications(BuildContext context) {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+    final textColor60 = AppTheme.getTextColor60(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -231,16 +260,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Notificações',
                     style: TextStyle(
-                      color: AppTheme.white,
+                      color: textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.white),
+                    icon: Icon(Icons.close, color: textColor),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -250,16 +279,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 'João comentou no seu post',
                 '5 min atrás',
                 Icons.comment,
+                backgroundColor,
+                primaryColor20,
+                primaryColor,
+                textColor,
+                textColor60,
               ),
               _buildNotificationItem(
                 'Maria respondeu seu comentário',
                 '1 hora atrás',
                 Icons.reply,
+                backgroundColor,
+                primaryColor20,
+                primaryColor,
+                textColor,
+                textColor60,
               ),
               _buildNotificationItem(
                 'Novo sinal postado pelo Alano',
                 '2 horas atrás',
                 Icons.trending_up,
+                backgroundColor,
+                primaryColor20,
+                primaryColor,
+                textColor,
+                textColor60,
               ),
               const SizedBox(height: 16),
             ],
@@ -269,12 +313,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildNotificationItem(String title, String time, IconData icon) {
+  Widget _buildNotificationItem(
+    String title,
+    String time,
+    IconData icon,
+    Color backgroundColor,
+    Color primaryColor20,
+    Color primaryColor,
+    Color textColor,
+    Color textColor60,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueBackground,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -282,12 +335,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(0, 255, 1, 0.2),
+              color: primaryColor20,
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: AppTheme.greenPrimary,
+              color: primaryColor,
               size: 20,
             ),
           ),
@@ -298,8 +351,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppTheme.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -307,8 +360,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 4),
                 Text(
                   time,
-                  style: const TextStyle(
-                    color: Color.fromRGBO(255, 255, 255, 0.6),
+                  style: TextStyle(
+                    color: textColor60,
                     fontSize: 12,
                   ),
                 ),

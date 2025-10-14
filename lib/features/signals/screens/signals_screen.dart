@@ -57,13 +57,17 @@ class _SignalsScreenState extends State<SignalsScreen> {
         ? _signals
         : _signals.where((s) => s['type'] == _selectedFilter).toList();
 
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBlueBackground,
+      backgroundColor: backgroundColor,
       body: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            color: AppTheme.darkBlueSecondary,
+            color: secondaryBackground,
             child: Row(
               children: [
                 _buildFilterChip('Todos'),
@@ -78,8 +82,8 @@ class _SignalsScreenState extends State<SignalsScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshSignals,
-              color: AppTheme.greenPrimary,
-              backgroundColor: AppTheme.darkBlueSecondary,
+              color: primaryColor,
+              backgroundColor: secondaryBackground,
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: filteredSignals.length,
@@ -96,6 +100,9 @@ class _SignalsScreenState extends State<SignalsScreen> {
 
   Widget _buildFilterChip(String label) {
     final isSelected = _selectedFilter == label;
+    final textColor = AppTheme.getTextColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
 
     return GestureDetector(
       onTap: () {
@@ -106,15 +113,17 @@ class _SignalsScreenState extends State<SignalsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.greenPrimary
-              : AppTheme.darkBlueBackground,
+          color: isSelected ? primaryColor : backgroundColor,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? AppTheme.darkBlueBackground : AppTheme.white,
+            color: isSelected 
+                ? (Theme.of(context).brightness == Brightness.dark 
+                    ? AppTheme.black 
+                    : AppTheme.white)
+                : textColor,
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -126,13 +135,17 @@ class _SignalsScreenState extends State<SignalsScreen> {
   Widget _buildSignalCard(Map<String, dynamic> signal) {
     final isLong = signal['type'] == 'LONG';
     final typeColor = isLong ? Colors.green : Colors.red;
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueSecondary,
+        color: secondaryBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: typeColor.withOpacity(0.3), width: 1),
+        border: Border.all(color: Color.lerp(typeColor, Colors.transparent, 0.7)!, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +153,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: typeColor.withOpacity(0.1),
+              color: Color.lerp(typeColor, Colors.transparent, 0.9)!,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -170,8 +183,8 @@ class _SignalsScreenState extends State<SignalsScreen> {
                 Expanded(
                   child: Text(
                     signal['coin'],
-                    style: const TextStyle(
-                      color: AppTheme.white,
+                    style: TextStyle(
+                      color: textColor,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -187,16 +200,18 @@ class _SignalsScreenState extends State<SignalsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Entrada', '${signal['entry']}', Icons.login),
+                _buildInfoRow('Entrada', '${signal['entry']}', Icons.login, textColor60, textColor),
                 const SizedBox(height: 12),
 
-                _buildTargetsSection(signal['targets']),
+                _buildTargetsSection(signal['targets'], backgroundColor, textColor60, textColor),
                 const SizedBox(height: 12),
 
                 _buildInfoRow(
                   'Stop Loss',
                   '${signal['stopLoss']}',
                   Icons.stop_circle,
+                  textColor60,
+                  textColor,
                   color: Colors.red,
                 ),
                 const SizedBox(height: 16),
@@ -207,7 +222,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppTheme.darkBlueBackground,
+                          color: backgroundColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -216,15 +231,15 @@ class _SignalsScreenState extends State<SignalsScreen> {
                             Text(
                               'Status',
                               style: TextStyle(
-                                color: AppTheme.white.withOpacity(0.6),
+                                color: textColor60,
                                 fontSize: 12,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               signal['status'],
-                              style: const TextStyle(
-                                color: AppTheme.greenPrimary,
+                              style: TextStyle(
+                                color: AppTheme.getPrimaryColor(context),
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -238,7 +253,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppTheme.darkBlueBackground,
+                          color: backgroundColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -247,7 +262,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
                             Text(
                               'Lucro',
                               style: TextStyle(
-                                color: AppTheme.white.withOpacity(0.6),
+                                color: textColor60,
                                 fontSize: 12,
                               ),
                             ),
@@ -257,7 +272,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
                               style: TextStyle(
                                 color: signal['profit'].contains('+')
                                     ? Colors.green
-                                    : AppTheme.white,
+                                    : textColor,
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -276,13 +291,13 @@ class _SignalsScreenState extends State<SignalsScreen> {
                     Icon(
                       Icons.access_time,
                       size: 14,
-                      color: AppTheme.white.withOpacity(0.6),
+                      color: textColor60,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       _formatTime(signal['time']),
                       style: TextStyle(
-                        color: AppTheme.white.withOpacity(0.6),
+                        color: textColor60,
                         fontSize: 12,
                       ),
                     ),
@@ -326,7 +341,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.2),
+        color: Color.lerp(badgeColor, Colors.transparent, 0.8)!,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: badgeColor, width: 1),
       ),
@@ -344,17 +359,19 @@ class _SignalsScreenState extends State<SignalsScreen> {
   Widget _buildInfoRow(
     String label,
     String value,
-    IconData icon, {
+    IconData icon,
+    Color textColor60,
+    Color textColor, {
     Color? color,
   }) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: color ?? AppTheme.greenPrimary),
+        Icon(icon, size: 16, color: color ?? AppTheme.getPrimaryColor(context)),
         const SizedBox(width: 8),
         Text(
           label,
           style: TextStyle(
-            color: AppTheme.white.withOpacity(0.6),
+            color: textColor60,
             fontSize: 14,
           ),
         ),
@@ -362,7 +379,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
         Text(
           value,
           style: TextStyle(
-            color: color ?? AppTheme.white,
+            color: color ?? textColor,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
@@ -371,18 +388,23 @@ class _SignalsScreenState extends State<SignalsScreen> {
     );
   }
 
-  Widget _buildTargetsSection(List<String> targets) {
+  Widget _buildTargetsSection(
+    List<String> targets,
+    Color backgroundColor,
+    Color textColor60,
+    Color textColor,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(Icons.flag, size: 16, color: AppTheme.greenPrimary),
+            Icon(Icons.flag, size: 16, color: AppTheme.getPrimaryColor(context)),
             const SizedBox(width: 8),
             Text(
               'Alvos',
               style: TextStyle(
-                color: AppTheme.white.withOpacity(0.6),
+                color: textColor60,
                 fontSize: 14,
               ),
             ),
@@ -400,7 +422,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppTheme.darkBlueBackground,
+                  color: backgroundColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -408,15 +430,15 @@ class _SignalsScreenState extends State<SignalsScreen> {
                     Text(
                       'T${index + 1}',
                       style: TextStyle(
-                        color: AppTheme.white.withOpacity(0.6),
+                        color: textColor60,
                         fontSize: 10,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       target,
-                      style: const TextStyle(
-                        color: AppTheme.white,
+                      style: TextStyle(
+                        color: textColor,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -452,8 +474,7 @@ class _SignalsScreenState extends State<SignalsScreen> {
   }
 
   void _copySignal(Map<String, dynamic> signal) {
-    final signalText =
-        '''
+    final signalText = '''
 🚀 ${signal['coin']} - ${signal['type']}
 
 📍 Entrada: ${signal['entry']}
@@ -467,10 +488,10 @@ Status: ${signal['status']}
     Clipboard.setData(ClipboardData(text: signalText));
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Sinal copiado para a área de transferência!'),
-        backgroundColor: AppTheme.greenPrimary,
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: const Text('Sinal copiado para a área de transferência!'),
+        backgroundColor: AppTheme.getPrimaryColor(context),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

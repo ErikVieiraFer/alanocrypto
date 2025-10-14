@@ -39,12 +39,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBlueBackground,
+      backgroundColor: backgroundColor,
       body: RefreshIndicator(
         onRefresh: _refreshPosts,
-        color: AppTheme.greenPrimary,
-        backgroundColor: AppTheme.darkBlueSecondary,
+        color: primaryColor,
+        backgroundColor: secondaryBackground,
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: _posts.length + 1,
@@ -58,29 +62,42 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _createPost,
-        backgroundColor: AppTheme.greenPrimary,
-        child: const Icon(
+        backgroundColor: primaryColor,
+        child: Icon(
           Icons.add,
-          color: AppTheme.darkBlueBackground,
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? AppTheme.black 
+              : AppTheme.white,
         ),
       ),
     );
   }
 
   Widget _buildCreatePostCard() {
+    //final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueSecondary,
+        color: secondaryBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 20,
-            backgroundColor: AppTheme.greenPrimary,
-            child: Icon(Icons.person, color: AppTheme.darkBlueBackground),
+            backgroundColor: primaryColor,
+            child: Icon(
+              Icons.person,
+              color: Theme.of(context).brightness == Brightness.dark 
+                  ? AppTheme.black 
+                  : AppTheme.white,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -92,13 +109,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: AppTheme.darkBlueBackground,
+                  color: backgroundColor,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Text(
                   'No que você está pensando?',
                   style: TextStyle(
-                    color: const Color.fromRGBO(255, 255, 255, 0.6),
+                    color: textColor60,
                     fontSize: 14,
                   ),
                 ),
@@ -112,11 +129,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPostCard(Map<String, dynamic> post) {
     final bool isMyPost = post['userId'] == _currentUserId;
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueSecondary,
+        color: secondaryBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -137,8 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         post['userName'],
-                        style: const TextStyle(
-                          color: AppTheme.white,
+                        style: TextStyle(
+                          color: textColor,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -146,19 +167,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         _formatTime(post['timestamp']),
                         style: TextStyle(
-                          color: const Color.fromRGBO(255, 255, 255, 0.6),
+                          color: textColor60,
                           fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Botão de opções só aparece se for post do usuário
                 if (isMyPost)
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.more_vert,
-                      color: AppTheme.white,
+                      color: textColor,
                     ),
                     onPressed: () => _showMyPostOptions(post),
                   ),
@@ -169,8 +189,8 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               post['content'],
-              style: const TextStyle(
-                color: AppTheme.white,
+              style: TextStyle(
+                color: textColor,
                 fontSize: 14,
               ),
             ),
@@ -186,11 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
-                    color: AppTheme.darkBlueBackground,
-                    child: const Center(
+                    color: backgroundColor,
+                    child: Center(
                       child: Icon(
                         Icons.image_not_supported,
-                        color: AppTheme.white,
+                        color: textColor,
                         size: 48,
                       ),
                     ),
@@ -202,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 16),
 
-          // Ações (curtir, comentar)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
@@ -210,21 +229,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildActionButton(
                   icon: post['isLiked'] ? Icons.favorite : Icons.favorite_border,
                   label: '${post['likes']}',
-                  color: post['isLiked'] ? Colors.red : AppTheme.white,
+                  color: post['isLiked'] ? Colors.red : textColor,
                   onTap: () => _toggleLike(post),
                 ),
                 const SizedBox(width: 16),
                 _buildActionButton(
                   icon: Icons.comment_outlined,
                   label: '${post['comments']}',
-                  color: AppTheme.white,
+                  color: textColor,
                   onTap: () => _showComments(post),
                 ),
                 const SizedBox(width: 16),
                 _buildActionButton(
                   icon: Icons.share_outlined,
                   label: 'Compartilhar',
-                  color: AppTheme.white,
+                  color: textColor,
                   onTap: () => _sharePost(post),
                 ),
               ],
@@ -274,10 +293,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final TextEditingController textController = TextEditingController();
     String? selectedImage;
 
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -297,16 +321,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Criar Post',
                           style: TextStyle(
-                            color: AppTheme.white,
+                            color: textColor,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: AppTheme.white),
+                          icon: Icon(Icons.close, color: textColor),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
@@ -316,15 +340,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: textController,
                       autofocus: true,
                       maxLines: 5,
-                      style: const TextStyle(color: AppTheme.white),
+                      style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         hintText: 'No que você está pensando?',
                         hintStyle: TextStyle(
-                          color: const Color.fromRGBO(255, 255, 255, 0.6),
+                          color: textColor60,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppTheme.greenPrimary),
+                          borderSide: BorderSide(color: primaryColor),
                         ),
                       ),
                     ),
@@ -352,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               icon: const Icon(Icons.close),
                               style: IconButton.styleFrom(
-                                backgroundColor: Colors.black54,
+                                backgroundColor: AppTheme.black70,
                                 foregroundColor: Colors.white,
                               ),
                             ),
@@ -363,11 +387,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        // Botão anexar imagem
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              // Simula a seleção de imagem
                               setModalState(() {
                                 selectedImage = 'https://picsum.photos/600/400?random=${DateTime.now().millisecond}';
                               });
@@ -375,8 +397,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: const Icon(Icons.image),
                             label: const Text('Anexar Imagem'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppTheme.greenPrimary,
-                              side: const BorderSide(color: AppTheme.greenPrimary),
+                              foregroundColor: primaryColor,
+                              side: BorderSide(color: primaryColor),
                             ),
                           ),
                         ),
@@ -385,7 +407,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: ElevatedButton(
                             onPressed: () {
                               if (textController.text.isNotEmpty) {
-                                // Adicionar post (mockado)
                                 setState(() {
                                   _posts.insert(0, {
                                     'id': DateTime.now().toString(),
@@ -426,17 +447,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showComments(Map<String, dynamic> post) {
-    //tela de comentários
   }
 
   void _sharePost(Map<String, dynamic> post) {
-    //compartilhamento
   }
 
   void _showMyPostOptions(Map<String, dynamic> post) {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -445,10 +468,10 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.edit, color: AppTheme.greenPrimary),
-              title: const Text(
+              leading: Icon(Icons.edit, color: primaryColor),
+              title: Text(
                 'Editar',
-                style: TextStyle(color: AppTheme.white),
+                style: TextStyle(color: textColor),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -477,18 +500,21 @@ class _HomeScreenState extends State<HomeScreen> {
       text: post['content'],
     );
 
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkBlueSecondary,
-        title: const Text(
+        backgroundColor: secondaryBackground,
+        title: Text(
           'Editar Post',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
         content: TextField(
           controller: textController,
           maxLines: 5,
-          style: const TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
           ),
@@ -513,17 +539,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _deletePost(Map<String, dynamic> post) {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkBlueSecondary,
-        title: const Text(
+        backgroundColor: secondaryBackground,
+        title: Text(
           'Excluir Post',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
-        content: const Text(
+        content: Text(
           'Tem certeza que deseja excluir este post?',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
         actions: [
           TextButton(

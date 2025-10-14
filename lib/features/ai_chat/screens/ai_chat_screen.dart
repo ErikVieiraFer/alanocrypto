@@ -79,18 +79,25 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = AppTheme.getTextColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
+    final textColor50 = AppTheme.getTextColor50(context);
+    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBlueBackground,
+      backgroundColor: backgroundColor,
       body: Column(
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.darkBlueSecondary,
+              color: secondaryBackground,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: AppTheme.black20,
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -101,12 +108,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.greenPrimary.withOpacity(0.2),
+                    color: primaryColor20,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.smart_toy,
-                    color: AppTheme.greenPrimary,
+                    color: primaryColor,
                     size: 32,
                   ),
                 ),
@@ -115,10 +122,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Assistente de Trading',
                         style: TextStyle(
-                          color: AppTheme.white,
+                          color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -128,8 +135,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.greenPrimary,
+                            decoration: BoxDecoration(
+                              color: primaryColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -137,7 +144,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                           Text(
                             'Online',
                             style: TextStyle(
-                              color: AppTheme.white.withOpacity(0.7),
+                              color: textColor60,
                               fontSize: 12,
                             ),
                           ),
@@ -147,9 +154,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.info_outline,
-                    color: AppTheme.white,
+                    color: textColor,
                   ),
                   onPressed: _showInfo,
                 ),
@@ -182,10 +189,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.darkBlueSecondary,
+              color: secondaryBackground,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: AppTheme.black20,
                   blurRadius: 4,
                   offset: const Offset(0, -2),
                 ),
@@ -197,14 +204,14 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _messageController,
-                      style: const TextStyle(color: AppTheme.white),
+                      style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         hintText: 'Digite sua mensagem...',
                         hintStyle: TextStyle(
-                          color: AppTheme.white.withOpacity(0.5),
+                          color: textColor50,
                         ),
                         filled: true,
-                        fillColor: AppTheme.darkBlueBackground,
+                        fillColor: backgroundColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
@@ -219,14 +226,16 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    decoration: const BoxDecoration(
-                      color: AppTheme.greenPrimary,
+                    decoration: BoxDecoration(
+                      color: primaryColor,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.send,
-                        color: AppTheme.darkBlueBackground,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? AppTheme.black 
+                            : AppTheme.white,
                       ),
                       onPressed: _sendMessage,
                     ),
@@ -242,6 +251,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
   Widget _buildMessageBubble(Map<String, dynamic> message) {
     final isUser = message['isUser'] as bool;
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
     
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -252,9 +264,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isUser
-              ? AppTheme.greenPrimary
-              : AppTheme.darkBlueSecondary,
+          color: isUser ? primaryColor : secondaryBackground,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -264,8 +274,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
               message['text'],
               style: TextStyle(
                 color: isUser
-                    ? AppTheme.darkBlueBackground
-                    : AppTheme.white,
+                    ? (Theme.of(context).brightness == Brightness.dark 
+                        ? AppTheme.black 
+                        : AppTheme.white)
+                    : textColor,
                 fontSize: 14,
               ),
             ),
@@ -274,8 +286,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
               _formatTime(message['timestamp']),
               style: TextStyle(
                 color: isUser
-                    ? AppTheme.darkBlueBackground.withOpacity(0.7)
-                    : AppTheme.white.withOpacity(0.5),
+                    ? (Theme.of(context).brightness == Brightness.dark 
+                        ? const Color(0xB3000000) 
+                        : const Color(0xB3FFFFFF))
+                    : AppTheme.getTextColor50(context),
                 fontSize: 10,
               ),
             ),
@@ -286,17 +300,21 @@ class _AIChatScreenState extends State<AIChatScreen> {
   }
 
   Widget _buildQuickSuggestion(String text) {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor30 = AppTheme.getPrimaryColor30(context);
+
     return Container(
       margin: const EdgeInsets.only(right: 8),
       child: ActionChip(
         label: Text(text),
-        labelStyle: const TextStyle(
-          color: AppTheme.white,
+        labelStyle: TextStyle(
+          color: textColor,
           fontSize: 12,
         ),
-        backgroundColor: AppTheme.darkBlueSecondary,
+        backgroundColor: secondaryBackground,
         side: BorderSide(
-          color: AppTheme.greenPrimary.withOpacity(0.3),
+          color: primaryColor30,
         ),
         onPressed: () {
           _messageController.text = text;
@@ -322,24 +340,28 @@ class _AIChatScreenState extends State<AIChatScreen> {
   }
 
   void _showInfo() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkBlueSecondary,
-        title: const Text(
+        backgroundColor: secondaryBackground,
+        title: Text(
           'Sobre o Assistente',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
-        content: const Text(
+        content: Text(
           'Este assistente foi treinado para ajudar com dúvidas sobre trading e análises do mercado de criptomoedas.\n\nLembre-se: as informações fornecidas não são conselhos financeiros.',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Entendi',
-              style: TextStyle(color: AppTheme.greenPrimary),
+              style: TextStyle(color: primaryColor),
             ),
           ),
         ],

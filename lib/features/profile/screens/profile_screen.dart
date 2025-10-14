@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:alanoapp/theme/app_theme.dart';
+import 'package:alanoapp/theme/theme_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,19 +11,25 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Dados mockados do usuário
   final String _userName = 'João Silva';
   final String _userEmail = 'joao.silva@gmail.com';
 
-  // Stats mockados
   int _postsCount = 15;
   int _commentsCount = 42;
   int _likesCount = 128;
 
   @override
   Widget build(BuildContext context) {
+    final textColor = AppTheme.getTextColor(context);
+    final backgroundColor = AppTheme.getBackgroundColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+    final textColor60 = AppTheme.getTextColor60(context);
+    final textColor30 = AppTheme.getTextColor30(context);
+    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.darkBlueBackground,
+      backgroundColor: backgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -29,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppTheme.darkBlueSecondary,
+                color: secondaryBackground,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
@@ -37,56 +45,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Column(
                 children: [
-                  // Foto do perfil
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: AppTheme.greenPrimary,
-                    child: const Icon(
+                    backgroundColor: primaryColor,
+                    child: Icon(
                       Icons.person,
                       size: 50,
-                      color: AppTheme.darkBlueBackground,
+                      color: backgroundColor,
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Nome
                   Text(
                     _userName,
-                    style: const TextStyle(
-                      color: AppTheme.white,
+                    style: TextStyle(
+                      color: textColor,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
 
-                  // Email
                   Text(
                     _userEmail,
                     style: TextStyle(
-                      color: AppTheme.white.withOpacity(0.7),
+                      color: textColor60,
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Stats
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildStatItem('Posts', _postsCount),
+                      _buildStatItem('Posts', _postsCount, primaryColor, textColor, textColor60),
                       Container(
                         width: 1,
                         height: 40,
-                        color: AppTheme.white.withOpacity(0.2),
+                        color: textColor30,
                       ),
-                      _buildStatItem('Comentários', _commentsCount),
+                      _buildStatItem('Comentários', _commentsCount, primaryColor, textColor, textColor60),
                       Container(
                         width: 1,
                         height: 40,
-                        color: AppTheme.white.withOpacity(0.2),
+                        color: textColor30,
                       ),
-                      _buildStatItem('Curtidas', _likesCount),
+                      _buildStatItem('Curtidas', _likesCount, primaryColor, textColor, textColor60),
                     ],
                   ),
                 ],
@@ -99,46 +103,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.edit,
               title: 'Editar Perfil',
               onTap: _editProfile,
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
+            ),
+            _buildOptionCard(
+              icon: Icons.palette,
+              title: 'Tema',
+              onTap: () => _showThemeOptions(context),
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
             ),
             _buildOptionCard(
               icon: Icons.notifications,
               title: 'Notificações',
               onTap: _openNotifications,
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
             ),
             _buildOptionCard(
               icon: Icons.security,
               title: 'Privacidade',
               onTap: _openPrivacy,
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
             ),
             _buildOptionCard(
               icon: Icons.help,
               title: 'Ajuda',
               onTap: _openHelp,
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
             ),
             _buildOptionCard(
               icon: Icons.info,
               title: 'Sobre',
               onTap: _openAbout,
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
             ),
             _buildOptionCard(
               icon: Icons.logout,
               title: 'Sair',
               color: Colors.red,
               onTap: _logout,
+              backgroundColor: secondaryBackground,
+              primaryColor: primaryColor,
+              primaryColor20: primaryColor20,
+              textColor: textColor,
+              textColor60: textColor60,
             ),
 
             const SizedBox(height: 24),
 
-            // Meus posts recentes
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Meus Posts Recentes',
                     style: TextStyle(
-                      color: AppTheme.white,
+                      color: textColor,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -149,18 +192,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     '2 horas atrás',
                     24,
                     8,
+                    secondaryBackground,
+                    textColor,
+                    textColor60,
                   ),
                   _buildRecentPostItem(
                     'Análise do mercado hoje',
                     '1 dia atrás',
                     15,
                     5,
+                    secondaryBackground,
+                    textColor,
+                    textColor60,
                   ),
                   _buildRecentPostItem(
                     'Dica de segurança para iniciantes',
                     '3 dias atrás',
                     32,
                     12,
+                    secondaryBackground,
+                    textColor,
+                    textColor60,
                   ),
                 ],
               ),
@@ -173,13 +225,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, int value) {
+  Widget _buildStatItem(String label, int value, Color primaryColor, Color textColor, Color textColor60) {
     return Column(
       children: [
         Text(
           value.toString(),
-          style: const TextStyle(
-            color: AppTheme.greenPrimary,
+          style: TextStyle(
+            color: primaryColor,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -188,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Text(
           label,
           style: TextStyle(
-            color: AppTheme.white.withOpacity(0.7),
+            color: textColor60,
             fontSize: 12,
           ),
         ),
@@ -201,11 +253,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required VoidCallback onTap,
     Color? color,
+    required Color backgroundColor,
+    required Color primaryColor,
+    required Color primaryColor20,
+    required Color textColor,
+    required Color textColor60,
   }) {
+    final displayColor = color ?? primaryColor;
+    final bgColor = color != null ? const Color(0x33F44336) : primaryColor20;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Material(
-        color: AppTheme.darkBlueSecondary,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
@@ -217,12 +277,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: (color ?? AppTheme.greenPrimary).withOpacity(0.2),
+                    color: bgColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon,
-                    color: color ?? AppTheme.greenPrimary,
+                    color: displayColor,
                     size: 24,
                   ),
                 ),
@@ -231,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      color: color ?? AppTheme.white,
+                      color: color ?? textColor,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -239,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: color ?? AppTheme.white.withOpacity(0.5),
+                  color: color ?? textColor60,
                 ),
               ],
             ),
@@ -254,12 +314,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String time,
     int likes,
     int comments,
+    Color backgroundColor,
+    Color textColor,
+    Color textColor60,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.darkBlueSecondary,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -267,8 +330,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Text(
             content,
-            style: const TextStyle(
-              color: AppTheme.white,
+            style: TextStyle(
+              color: textColor,
               fontSize: 14,
             ),
             maxLines: 2,
@@ -280,13 +343,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(
                 Icons.schedule,
                 size: 14,
-                color: AppTheme.white.withOpacity(0.6),
+                color: textColor60,
               ),
               const SizedBox(width: 4),
               Text(
                 time,
                 style: TextStyle(
-                  color: AppTheme.white.withOpacity(0.6),
+                  color: textColor60,
                   fontSize: 12,
                 ),
               ),
@@ -294,13 +357,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(
                 Icons.favorite,
                 size: 14,
-                color: AppTheme.white.withOpacity(0.6),
+                color: textColor60,
               ),
               const SizedBox(width: 4),
               Text(
                 '$likes',
                 style: TextStyle(
-                  color: AppTheme.white.withOpacity(0.6),
+                  color: textColor60,
                   fontSize: 12,
                 ),
               ),
@@ -308,13 +371,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(
                 Icons.comment,
                 size: 14,
-                color: AppTheme.white.withOpacity(0.6),
+                color: textColor60,
               ),
               const SizedBox(width: 4),
               Text(
                 '$comments',
                 style: TextStyle(
-                  color: AppTheme.white.withOpacity(0.6),
+                  color: textColor60,
                   fontSize: 12,
                 ),
               ),
@@ -325,11 +388,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showThemeOptions(BuildContext context) {
+    //final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: secondaryBackground,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer<ThemeProvider>(
+          builder: (context, provider, child) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Escolher Tema',
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: textColor),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ListTile(
+                    leading: const Icon(Icons.dark_mode, color: AppTheme.greenPrimary),
+                    title: Text(
+                      'Tema Escuro',
+                      style: TextStyle(color: textColor),
+                    ),
+                    subtitle: Text(
+                      'Fundo preto com verde suave',
+                      style: TextStyle(color: AppTheme.getTextColor60(context)),
+                    ),
+                    trailing: provider.isDarkMode
+                        ? Icon(Icons.check_circle, color: primaryColor)
+                        : const Icon(Icons.circle_outlined),
+                    onTap: () {
+                      provider.setThemeMode(ThemeMode.dark);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Tema escuro ativado'),
+                          backgroundColor: primaryColor,
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.light_mode, color: AppTheme.greenDark),
+                    title: Text(
+                      'Tema Claro',
+                      style: TextStyle(color: textColor),
+                    ),
+                    subtitle: Text(
+                      'Fundo branco com verde escuro',
+                      style: TextStyle(color: AppTheme.getTextColor60(context)),
+                    ),
+                    trailing: !provider.isDarkMode
+                        ? Icon(Icons.check_circle, color: primaryColor)
+                        : const Icon(Icons.circle_outlined),
+                    onTap: () {
+                      provider.setThemeMode(ThemeMode.light);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Tema claro ativado'),
+                          backgroundColor: primaryColor,
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _editProfile() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -347,37 +512,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Editar Perfil',
                       style: TextStyle(
-                        color: AppTheme.white,
+                        color: textColor,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: AppTheme.white),
+                      icon: Icon(Icons.close, color: textColor),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 TextField(
-                  style: const TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     labelText: 'Nome',
-                    labelStyle: const TextStyle(color: AppTheme.white),
-                    prefixIcon: const Icon(Icons.person, color: AppTheme.white),
+                    labelStyle: TextStyle(color: textColor),
+                    prefixIcon: Icon(Icons.person, color: textColor),
                     hintText: _userName,
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
-                  style: const TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     labelText: 'Bio',
-                    labelStyle: const TextStyle(color: AppTheme.white),
-                    prefixIcon: const Icon(Icons.info, color: AppTheme.white),
+                    labelStyle: TextStyle(color: textColor),
+                    prefixIcon: Icon(Icons.info, color: textColor),
                     hintText: 'Fale sobre você',
                   ),
                   maxLines: 3,
@@ -389,9 +554,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: () {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Perfil atualizado!'),
-                          backgroundColor: AppTheme.greenPrimary,
+                        SnackBar(
+                          content: const Text('Perfil atualizado!'),
+                          backgroundColor: primaryColor,
                         ),
                       );
                     },
@@ -407,9 +572,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openNotifications() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -423,72 +592,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Notificações',
                     style: TextStyle(
-                      color: AppTheme.white,
+                      color: textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.white),
+                    icon: Icon(Icons.close, color: textColor),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   'Novos posts',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
                 subtitle: Text(
                   'Notificar quando houver novos posts',
-                  style: TextStyle(color: AppTheme.white.withOpacity(0.6)),
+                  style: TextStyle(color: AppTheme.getTextColor60(context)),
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppTheme.greenPrimary,
+                activeColor: primaryColor,
               ),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   'Comentários',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
                 subtitle: Text(
                   'Notificar sobre respostas aos seus posts',
-                  style: TextStyle(color: AppTheme.white.withOpacity(0.6)),
+                  style: TextStyle(color: AppTheme.getTextColor60(context)),
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppTheme.greenPrimary,
+                activeColor: primaryColor,
               ),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   'Sinais de trading',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
                 subtitle: Text(
                   'Notificar quando houver novos sinais',
-                  style: TextStyle(color: AppTheme.white.withOpacity(0.6)),
+                  style: TextStyle(color: AppTheme.getTextColor60(context)),
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppTheme.greenPrimary,
+                activeColor: primaryColor,
               ),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   'Posts do Alano',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
                 subtitle: Text(
                   'Notificar sobre novos posts do Alano',
-                  style: TextStyle(color: AppTheme.white.withOpacity(0.6)),
+                  style: TextStyle(color: AppTheme.getTextColor60(context)),
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppTheme.greenPrimary,
+                activeColor: primaryColor,
               ),
             ],
           ),
@@ -498,9 +667,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openPrivacy() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -514,69 +687,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Privacidade',
                     style: TextStyle(
-                      color: AppTheme.white,
+                      color: textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.white),
+                    icon: Icon(Icons.close, color: textColor),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   'Perfil público',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
                 subtitle: Text(
                   'Outros membros podem ver seu perfil',
-                  style: TextStyle(color: AppTheme.white.withOpacity(0.6)),
+                  style: TextStyle(color: AppTheme.getTextColor60(context)),
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppTheme.greenPrimary,
+                activeColor: primaryColor,
               ),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   'Mostrar estatísticas',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
                 subtitle: Text(
                   'Exibir posts, curtidas e comentários',
-                  style: TextStyle(color: AppTheme.white.withOpacity(0.6)),
+                  style: TextStyle(color: AppTheme.getTextColor60(context)),
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppTheme.greenPrimary,
+                activeColor: primaryColor,
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.shield, color: AppTheme.greenPrimary),
-                title: const Text(
+                leading: Icon(Icons.shield, color: primaryColor),
+                title: Text(
                   'Política de Privacidade',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.white, size: 16),
-                onTap: () {
-                  //política de privacidade
-                },
+                trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
+                onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.description, color: AppTheme.greenPrimary),
-                title: const Text(
+                leading: Icon(Icons.description, color: primaryColor),
+                title: Text(
                   'Termos de Uso',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.white, size: 16),
-                onTap: () {
-                  //termos de uso
-                },
+                trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
+                onTap: () {},
               ),
             ],
           ),
@@ -586,9 +755,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openHelp() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.darkBlueSecondary,
+      backgroundColor: secondaryBackground,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -602,55 +775,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Ajuda',
                     style: TextStyle(
-                      color: AppTheme.white,
+                      color: textColor,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppTheme.white),
+                    icon: Icon(Icons.close, color: textColor),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
               ListTile(
-                leading: const Icon(Icons.help_outline, color: AppTheme.greenPrimary),
-                title: const Text(
+                leading: Icon(Icons.help_outline, color: primaryColor),
+                title: Text(
                   'Perguntas Frequentes',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.white, size: 16),
+                trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
                 onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.chat, color: AppTheme.greenPrimary),
-                title: const Text(
+                leading: Icon(Icons.chat, color: primaryColor),
+                title: Text(
                   'Suporte ao Cliente',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.white, size: 16),
+                trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
                 onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.mail, color: AppTheme.greenPrimary),
-                title: const Text(
+                leading: Icon(Icons.mail, color: primaryColor),
+                title: Text(
                   'Enviar Feedback',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.white, size: 16),
+                trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
                 onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.bug_report, color: AppTheme.greenPrimary),
-                title: const Text(
+                leading: Icon(Icons.bug_report, color: primaryColor),
+                title: Text(
                   'Reportar Problema',
-                  style: TextStyle(color: AppTheme.white),
+                  style: TextStyle(color: textColor),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: AppTheme.white, size: 16),
+                trailing: Icon(Icons.arrow_forward_ios, color: textColor, size: 16),
                 onTap: () {},
               ),
             ],
@@ -661,24 +834,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _openAbout() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final primaryColor = AppTheme.getPrimaryColor(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkBlueSecondary,
-        title: const Text(
+        backgroundColor: secondaryBackground,
+        title: Text(
           'Sobre o App',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
-        content: const Text(
+        content: Text(
           'AlanoCryptoFX v1.0.0\n\nApp exclusivo para membros do canal.\n\nDesenvolvido com Flutter.',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Fechar',
-              style: TextStyle(color: AppTheme.greenPrimary),
+              style: TextStyle(color: primaryColor),
             ),
           ),
         ],
@@ -687,24 +864,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _logout() {
+    final textColor = AppTheme.getTextColor(context);
+    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkBlueSecondary,
-        title: const Text(
+        backgroundColor: secondaryBackground,
+        title: Text(
           'Sair',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
-        content: const Text(
+        content: Text(
           'Tem certeza que deseja sair?',
-          style: TextStyle(color: AppTheme.white),
+          style: TextStyle(color: textColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancelar',
-              style: TextStyle(color: AppTheme.white),
+              style: TextStyle(color: textColor),
             ),
           ),
           TextButton(
@@ -712,8 +892,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.of(context).pop();
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(
-                  builder: (context) => 
-                      const Placeholder(),
+                  builder: (context) => const Placeholder(),
                 ),
                 (route) => false,
               );

@@ -1,34 +1,55 @@
-
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color greenPrimary = Color(0xFF00ff01);
-  static const Color greenSecondary = Color(0xFF00FF88);
-  static const Color darkBlueBackground = Color(0xFF0E1116);
-  static const Color darkBlueSecondary = Color(0xFF0E1629);
+  static const Color greenPrimary = Color(0xFF00C853);
+  static const Color greenSecondary = Color(0xFF00C853);
+  static const Color greenDark = Color(0xFF00A040);
+  
+  static const Color darkBackground = Color(0xFF000000);
+  static const Color darkSecondary = Color(0xFF1A1A1A);
+  
+  static const Color lightBackground = Color(0xFFFFFFFF);
+  static const Color lightSecondary = Color(0xFFF5F5F5);
+  
   static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
+  
+  static const Color greenPrimary20 = Color(0x3300C853);
+  static const Color greenPrimary30 = Color(0x4D00C853);
+  static const Color white60 = Color(0x99FFFFFF);
+  static const Color white50 = Color(0x80FFFFFF);
+  static const Color white30 = Color(0x4DFFFFFF);
+  static const Color white20 = Color(0x33FFFFFF);
+  static const Color black70 = Color(0xB3000000);
+  static const Color black30 = Color(0x4D000000);
+  static const Color black20 = Color(0x33000000);
 
-  static final ThemeData themeData = ThemeData(
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
     primaryColor: greenPrimary,
-    scaffoldBackgroundColor: darkBlueBackground,
+    scaffoldBackgroundColor: darkBackground,
     colorScheme: const ColorScheme.dark(
       primary: greenPrimary,
       secondary: greenSecondary,
-      background: darkBlueBackground,
-      surface: darkBlueSecondary,
-      onPrimary: white,
-      onSecondary: white,
-      onBackground: white,
-      onSurface: white,
+      surface: darkSecondary,
+      background: darkBackground,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: darkSecondary,
+      elevation: 0,
+      iconTheme: IconThemeData(color: white),
     ),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: white),
       bodyMedium: TextStyle(color: white),
+      bodySmall: TextStyle(color: white60),
     ),
     inputDecorationTheme: InputDecorationTheme(
       labelStyle: const TextStyle(color: white),
+      hintStyle: const TextStyle(color: white50),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.5)),
+        borderSide: const BorderSide(color: white50),
         borderRadius: BorderRadius.circular(8.0),
       ),
       focusedBorder: OutlineInputBorder(
@@ -39,11 +60,115 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: greenPrimary,
-        foregroundColor: darkBlueBackground,
+        foregroundColor: black,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
       ),
     ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: greenPrimary,
+      foregroundColor: black,
+    ),
   );
+
+  static ThemeData lightTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    primaryColor: greenDark,
+    scaffoldBackgroundColor: lightBackground,
+    colorScheme: const ColorScheme.light(
+      primary: greenDark,
+      secondary: greenPrimary,
+      surface: lightSecondary,
+      background: lightBackground,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: lightSecondary,
+      elevation: 0,
+      iconTheme: IconThemeData(color: black),
+    ),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: black),
+      bodyMedium: TextStyle(color: black),
+      bodySmall: TextStyle(color: black70),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      labelStyle: const TextStyle(color: black),
+      hintStyle: const TextStyle(color: black70),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: black30),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: greenDark),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: greenDark,
+        foregroundColor: white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+      ),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: greenDark,
+      foregroundColor: white,
+    ),
+  );
+
+  static Color getTextColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? white : black;
+  }
+
+  static Color getBackgroundColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? darkBackground 
+        : lightBackground;
+  }
+
+  static Color getSecondaryBackgroundColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? darkSecondary 
+        : lightSecondary;
+  }
+
+  static Color getPrimaryColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? greenPrimary 
+        : greenDark;
+  }
+
+  static Color getTextColor60(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? white60 
+        : black70;
+  }
+
+  static Color getTextColor50(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? white50 
+        : Color(0x80000000);
+  }
+
+  static Color getTextColor30(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? white30 
+        : black30;
+  }
+
+  static Color getPrimaryColor20(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? greenPrimary20 
+        : Color(0x3300A040);
+  }
+
+  static Color getPrimaryColor30(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? greenPrimary30 
+        : Color(0x4D00A040);
+  }
 }
