@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "755553491761",
+    "project_id": "alanocryptofx",
+    "storage_bucket": "alanocryptofx.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755553491761:android:cd8bb7af12f9a2a32aee10",
+        "android_client_info": {
+          "package_name": "com.example.alanoapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMZQLna30owePevgG80YtYIyNmkdGPfWs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
