@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.alanoapp",
+            "certificate_hash": "151996a4d3649c2687e77c86d566b9caddc37ad3"
+          }
+        },
+        {
           "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "755553491761-o098bmbchv42higbviki62chc174ltmn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.alanoapp"
+              }
             }
           ]
         }

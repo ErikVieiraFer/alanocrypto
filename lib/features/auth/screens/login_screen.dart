@@ -1,4 +1,5 @@
 import 'package:alanoapp/features/dashboard/screen/dashboard_screen.dart';
+import 'package:alanoapp/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:alanoapp/theme/app_theme.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,53 +12,46 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _obscureText = true;
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _login() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Preencha todos os campos'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-    }
-  }
 
   Future<void> _loginWithGoogle() async {
     setState(() {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final userCredential = await _authService.signInWithGoogle();
 
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
+      if (userCredential != null && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login cancelado'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro no login: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -68,8 +62,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
     final primaryColor = AppTheme.getPrimaryColor(context);
     final textColor60 = AppTheme.getTextColor60(context);
-    final textColor50 = AppTheme.getTextColor50(context);
-    final textColor30 = AppTheme.getTextColor30(context);
     final primaryColor20 = AppTheme.getPrimaryColor20(context);
 
     return Scaffold(
@@ -144,142 +136,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                TextField(
-                  controller: _emailController,
-                  style: TextStyle(color: textColor),
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'E-mail',
-                    labelStyle: TextStyle(color: textColor),
-                    prefixIcon: Icon(Icons.email, color: textColor),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: textColor50),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: primaryColor),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscureText,
-                  style: TextStyle(color: textColor),
-                  decoration: InputDecoration(
-                    labelText: 'Senha',
-                    labelStyle: TextStyle(color: textColor),
-                    prefixIcon: Icon(Icons.lock, color: textColor),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureText ? Icons.visibility_off : Icons.visibility,
-                        color: textColor,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: textColor50),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: primaryColor),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                _isLoading
-                    ? CircularProgressIndicator(color: primaryColor)
-                    : ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: primaryColor,
-                          foregroundColor: Theme.of(context).brightness == Brightness.dark 
-                              ? AppTheme.black 
-                              : AppTheme.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                        child: const Text(
-                          'ENTRAR',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                const SizedBox(height: 16),
-
-                TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Tela de cadastro em desenvolvimento'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'Não tem conta? Cadastre-se',
-                    style: TextStyle(color: textColor),
+                Text(
+                  'Faça login para acessar conteúdo exclusivo',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: textColor60,
+                    fontSize: 14,
                   ),
                 ),
 
-                TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Recuperação de senha em desenvolvimento',
-                        ),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'Esqueceu minha senha',
-                    style: TextStyle(color: textColor),
-                  ),
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: textColor30)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ou',
-                        style: TextStyle(color: textColor60),
-                      ),
-                    ),
-                    Expanded(child: Divider(color: textColor30)),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                if (!_isLoading)
+                if (_isLoading)
+                  CircularProgressIndicator(color: primaryColor)
+                else
                   OutlinedButton.icon(
                     onPressed: _loginWithGoogle,
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
-                      side: BorderSide(color: textColor50),
+                      side: BorderSide(color: primaryColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
                     icon: Icon(
                       Icons.g_mobiledata,
-                      color: textColor,
+                      color: primaryColor,
                       size: 32,
                     ),
                     label: Text(
@@ -292,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 IconButton(
                   onPressed: () {},
@@ -303,25 +185,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0x332196F3),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0x802196F3)),
-                  ),
-                  child: const Text(
-                    '🎨 Versão Demo - Login Simulado',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                Text(
+                  'Seja membro do canal para acessar',
+                  style: TextStyle(
+                    color: textColor60,
+                    fontSize: 12,
                   ),
                 ),
               ],

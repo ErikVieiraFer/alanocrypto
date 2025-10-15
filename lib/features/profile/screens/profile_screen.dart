@@ -1,3 +1,4 @@
+import 'package:alanoapp/features/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:alanoapp/theme/app_theme.dart';
@@ -389,7 +390,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showThemeOptions(BuildContext context) {
-    //final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final textColor = AppTheme.getTextColor(context);
     final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
     final primaryColor = AppTheme.getPrimaryColor(context);
@@ -866,6 +867,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _logout() {
     final textColor = AppTheme.getTextColor(context);
     final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
+    final authService = AuthService();
 
     showDialog(
       context: context,
@@ -888,14 +890,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const Placeholder(),
-                ),
-                (route) => false,
-              );
+              await authService.signOut();
             },
             child: const Text(
               'Sair',

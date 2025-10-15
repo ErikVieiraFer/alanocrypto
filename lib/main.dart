@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:alanoapp/features/auth/screens/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:alanoapp/features/auth/screens/auth_wrapper.dart';
 import 'package:alanoapp/theme/app_theme.dart';
 import 'package:alanoapp/theme/theme_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),
@@ -26,7 +30,7 @@ class MyApp extends StatelessWidget {
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
           debugShowCheckedModeBanner: false,
-          home: const LoginScreen(),
+          home: const AuthWrapper(),
         );
       },
     );
