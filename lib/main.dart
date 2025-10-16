@@ -1,3 +1,5 @@
+import 'package:alanoapp/features/auth/screens/login_screen.dart';
+import 'package:alanoapp/features/dashboard/screen/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -26,11 +28,15 @@ class MyApp extends StatelessWidget {
       builder: (context, themeProvider, child) {
         return MaterialApp(
           title: 'AlanoCryptoFX',
+          debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          debugShowCheckedModeBanner: false,
           home: const AuthWrapper(),
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/dashboard': (context) => const DashboardScreen(),
+          },
         );
       },
     );

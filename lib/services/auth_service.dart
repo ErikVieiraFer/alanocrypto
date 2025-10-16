@@ -1,20 +1,24 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final UserService _userService = UserService();
 
   User? get currentUser => _auth.currentUser;
   
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  Future<UserCredential?> signInWithGoogle() async {
+  Future<User?> signInWithGoogle() async {
     try {
+      await _googleSignIn.signOut();
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
+
       if (googleUser == null) {
         return null;
       }
@@ -28,37 +32,14 @@ class AuthService {
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
 
-      await _saveUserToFirestore(userCredential.user!);
-
-      return userCredential;
-    } catch (e) {
-      print('Erro no login Google: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> _saveUserToFirestore(User user) async {
-    try {
-      final userDoc = _firestore.collection('users').doc(user.uid);
-      
-      final docSnapshot = await userDoc.get();
-      
-      if (!docSnapshot.exists) {
-        await userDoc.set({
-          'uid': user.uid,
-          'email': user.email,
-          'displayName': user.displayName,
-          'photoURL': user.photoURL,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
-      } else {
-        await userDoc.update({
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
+      if (userCredential.user != null) {
+        await _userService.createOrUpdateUser(userCredential.user!);
       }
+
+      return userCredential.user;
     } catch (e) {
-      print('Erro ao salvar usuário: $e');
+      print('Erro no login com Google: $e');
+      return null;
     }
   }
 
