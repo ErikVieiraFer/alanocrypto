@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:alanoapp/theme/app_theme.dart';
+import 'package:intl/intl.dart';
+import '../../../models/signal_model.dart';
+import '../../../services/signal_service.dart';
 
 class SignalsScreen extends StatefulWidget {
   const SignalsScreen({super.key});
@@ -9,143 +11,389 @@ class SignalsScreen extends StatefulWidget {
   State<SignalsScreen> createState() => _SignalsScreenState();
 }
 
-class _SignalsScreenState extends State<SignalsScreen> {
-  String _selectedFilter = 'Todos';
+class _SignalsScreenState extends State<SignalsScreen> with SingleTickerProviderStateMixin {
+  final SignalService _signalService = SignalService();
+  SignalType? _selectedFilter;
+  late TabController _tabController;
 
-  final List<Map<String, dynamic>> _signals = [
-    {
-      'id': '1',
-      'coin': 'BTC/USDT',
-      'type': 'LONG',
-      'entry': '49500',
-      'targets': ['50000', '50500', '51000'],
-      'stopLoss': '48800',
-      'status': 'Ativo',
-      'profit': '+2.5%',
-      'time': DateTime.now().subtract(const Duration(hours: 2)),
-      'confidence': 'Alta',
-    },
-    {
-      'id': '2',
-      'coin': 'ETH/USDT',
-      'type': 'LONG',
-      'entry': '2950',
-      'targets': ['3000', '3050', '3100'],
-      'stopLoss': '2900',
-      'status': 'Target 1 atingido',
-      'profit': '+1.7%',
-      'time': DateTime.now().subtract(const Duration(hours: 5)),
-      'confidence': 'Média',
-    },
-    {
-      'id': '3',
-      'coin': 'SOL/USDT',
-      'type': 'SHORT',
-      'entry': '155',
-      'targets': ['150', '145', '140'],
-      'stopLoss': '160',
-      'status': 'Ativo',
-      'profit': '0%',
-      'time': DateTime.now().subtract(const Duration(hours: 1)),
-      'confidence': 'Alta',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _copySignal(Signal signal) {
+    final text = _signalService.formatSignalText(signal);
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Sinal copiado!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  String _formatTimestamp(DateTime dateTime) {
+    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filteredSignals = _selectedFilter == 'Todos'
-        ? _signals
-        : _signals.where((s) => s['type'] == _selectedFilter).toList();
-
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
-            color: secondaryBackground,
-            child: Row(
-              children: [
-                _buildFilterChip('Todos'),
-                const SizedBox(width: 8),
-                _buildFilterChip('LONG'),
-                const SizedBox(width: 8),
-                _buildFilterChip('SHORT'),
-              ],
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.show_chart, size: 28),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Sinais',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _FilterChip(
+                            label: 'Todos',
+                            isSelected: _selectedFilter == null,
+                            onTap: () {
+                              setState(() {
+                                _selectedFilter = null;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _FilterChip(
+                            label: 'LONG',
+                            isSelected: _selectedFilter == SignalType.long,
+                            color: const Color(0xFF4CAF50),
+                            onTap: () {
+                              setState(() {
+                                _selectedFilter = SignalType.long;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _FilterChip(
+                            label: 'SHORT',
+                            isSelected: _selectedFilter == SignalType.short,
+                            color: const Color(0xFFF44336),
+                            onTap: () {
+                              setState(() {
+                                _selectedFilter = SignalType.short;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TabBar(
+                    controller: _tabController,
+                    tabs: const [
+                      Tab(text: 'Ativos'),
+                      Tab(text: 'Histórico'),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refreshSignals,
-              color: primaryColor,
-              backgroundColor: secondaryBackground,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: filteredSignals.length,
-                itemBuilder: (context, index) {
-                  return _buildSignalCard(filteredSignals[index]);
-                },
-              ),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _SignalsTab(
+                  stream: _signalService.getActiveSignals(filter: _selectedFilter),
+                  emptyMessage: 'Nenhum sinal ativo',
+                  onCopy: _copySignal,
+                  formatTimestamp: _formatTimestamp,
+                ),
+                _SignalsTab(
+                  stream: _signalService.getCompletedSignals(filter: _selectedFilter),
+                  emptyMessage: 'Nenhum sinal finalizado',
+                  onCopy: _copySignal,
+                  formatTimestamp: _formatTimestamp,
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
-    final textColor = AppTheme.getTextColor(context);
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final Color? color;
+  final VoidCallback onTap;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = label;
-        });
-      },
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final chipColor = color ?? Theme.of(context).colorScheme.primary;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? primaryColor : backgroundColor,
+          color: isSelected
+              ? chipColor.withAlpha(26)
+              : (isDark ? Colors.grey[800] : Colors.grey[200]),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? chipColor : Colors.transparent,
+            width: 2,
+          ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected 
-                ? (Theme.of(context).brightness == Brightness.dark 
-                    ? AppTheme.black 
-                    : AppTheme.white)
-                : textColor,
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? chipColor : null,
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildSignalCard(Map<String, dynamic> signal) {
-    final isLong = signal['type'] == 'LONG';
-    final typeColor = isLong ? Colors.green : Colors.red;
-    final textColor = AppTheme.getTextColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final textColor60 = AppTheme.getTextColor60(context);
+class _SignalsTab extends StatelessWidget {
+  final Stream<List<Signal>> stream;
+  final String emptyMessage;
+  final Function(Signal) onCopy;
+  final String Function(DateTime) formatTimestamp;
+
+  const _SignalsTab({
+    required this.stream,
+    required this.emptyMessage,
+    required this.onCopy,
+    required this.formatTimestamp,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Signal>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          final errorMessage = snapshot.error.toString();
+          
+          if (errorMessage.contains('index') || 
+              errorMessage.contains('FAILED_PRECONDITION')) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.build_circle_outlined,
+                      size: 64,
+                      color: Colors.orange[400],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Índice do banco de dados em construção',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Aguarde alguns minutos e tente novamente',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignalsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tentar Novamente'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red[400],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Erro ao carregar sinais',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    errorMessage,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final signals = snapshot.data ?? [];
+
+        if (signals.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.show_chart_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  emptyMessage,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {},
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: signals.length,
+            itemBuilder: (context, index) {
+              return SignalCard(
+                signal: signals[index],
+                onCopy: onCopy,
+                formatTimestamp: formatTimestamp,
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class SignalCard extends StatelessWidget {
+  final Signal signal;
+  final Function(Signal) onCopy;
+  final String Function(DateTime) formatTimestamp;
+
+  const SignalCard({
+    super.key,
+    required this.signal,
+    required this.onCopy,
+    required this.formatTimestamp,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: secondaryBackground,
+        color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Color.lerp(typeColor, Colors.transparent, 0.7)!, width: 1),
+        border: Border.all(
+          color: signal.typeColor.withAlpha(77),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(13),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,346 +401,246 @@ class _SignalsScreenState extends State<SignalsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Color.lerp(typeColor, Colors.transparent, 0.9)!,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
+              color: signal.typeColor.withAlpha(26),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: typeColor,
-                    borderRadius: BorderRadius.circular(6),
+                    color: signal.typeColor,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    signal['type'],
+                    signal.typeLabel,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
                       fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    signal['coin'],
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 18,
+                    signal.coin,
+                    style: const TextStyle(
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                _buildConfidenceBadge(signal['confidence']),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: signal.statusColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    signal.statusLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Entrada', '${signal['entry']}', Icons.login, textColor60, textColor),
-                const SizedBox(height: 12),
-
-                _buildTargetsSection(signal['targets'], backgroundColor, textColor60, textColor),
-                const SizedBox(height: 12),
-
-                _buildInfoRow(
-                  'Stop Loss',
-                  '${signal['stopLoss']}',
-                  Icons.stop_circle,
-                  textColor60,
-                  textColor,
-                  color: Colors.red,
-                ),
-                const SizedBox(height: 16),
-
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Status',
-                              style: TextStyle(
-                                color: textColor60,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              signal['status'],
-                              style: TextStyle(
-                                color: AppTheme.getPrimaryColor(context),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: _InfoRow(
+                        icon: Icons.login,
+                        label: 'Entrada',
+                        value: '\$${signal.entry.toStringAsFixed(2)}',
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Lucro',
-                              style: TextStyle(
-                                color: textColor60,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              signal['profit'],
-                              style: TextStyle(
-                                color: signal['profit'].contains('+')
-                                    ? Colors.green
-                                    : textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: _InfoRow(
+                        icon: Icons.block,
+                        label: 'Stop Loss',
+                        value: '\$${signal.stopLoss.toStringAsFixed(2)}',
+                        color: Colors.red,
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
                 Row(
                   children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: textColor60,
-                    ),
-                    const SizedBox(width: 6),
+                    const Icon(Icons.flag, size: 16, color: Colors.green),
+                    const SizedBox(width: 8),
                     Text(
-                      _formatTime(signal['time']),
+                      'Alvos:',
                       style: TextStyle(
-                        color: textColor60,
-                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 16),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _copySignal(signal),
-                    icon: const Icon(Icons.copy),
-                    label: const Text('Copiar Sinal'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: signal.targets.asMap().entries.map((entry) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withAlpha(26),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green.withAlpha(51)),
+                      ),
+                      child: Text(
+                        'T${entry.key + 1}: \$${entry.value.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                          fontSize: 12,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.speed, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Confiança: ${signal.confidence}%',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      formatTimestamp(signal.createdAt),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                if (signal.profit != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: (signal.profit! >= 0 ? Colors.green : Colors.red)
+                          .withAlpha(26),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          signal.profit! >= 0 ? Icons.trending_up : Icons.trending_down,
+                          color: signal.profit! >= 0 ? Colors.green : Colors.red,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Lucro: ${signal.profit!.toStringAsFixed(2)}%',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: signal.profit! >= 0 ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.grey[100],
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => onCopy(signal),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.copy,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Copiar Sinal',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildConfidenceBadge(String confidence) {
-    Color badgeColor;
-    switch (confidence) {
-      case 'Alta':
-        badgeColor = Colors.green;
-        break;
-      case 'Média':
-        badgeColor = Colors.orange;
-        break;
-      default:
-        badgeColor = Colors.red;
-    }
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? color;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Color.lerp(badgeColor, Colors.transparent, 0.8)!,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: badgeColor, width: 1),
-      ),
-      child: Text(
-        confidence,
-        style: TextStyle(
-          color: badgeColor,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.color,
+  });
 
-  Widget _buildInfoRow(
-    String label,
-    String value,
-    IconData icon,
-    Color textColor60,
-    Color textColor, {
-    Color? color,
-  }) {
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: color ?? AppTheme.getPrimaryColor(context)),
+        Icon(icon, size: 16, color: color ?? Colors.grey[600]),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: textColor60,
-            fontSize: 14,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            color: color ?? textColor,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTargetsSection(
-    List<String> targets,
-    Color backgroundColor,
-    Color textColor60,
-    Color textColor,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.flag, size: 16, color: AppTheme.getPrimaryColor(context)),
-            const SizedBox(width: 8),
             Text(
-              'Alvos',
+              label,
               style: TextStyle(
-                color: textColor60,
-                fontSize: 14,
+                fontSize: 11,
+                color: Colors.grey[600],
+              ),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: targets.asMap().entries.map((entry) {
-            final index = entry.key;
-            final target = entry.value;
-            return Expanded(
-              child: Container(
-                margin: EdgeInsets.only(
-                  right: index < targets.length - 1 ? 8 : 0,
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'T${index + 1}',
-                      style: TextStyle(
-                        color: textColor60,
-                        fontSize: 10,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      target,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
       ],
-    );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 1) {
-      return 'Agora';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m atrás';
-    } else if (difference.inDays < 1) {
-      return '${difference.inHours}h atrás';
-    } else {
-      return '${difference.inDays}d atrás';
-    }
-  }
-
-  Future<void> _refreshSignals() async {
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() {});
-  }
-
-  void _copySignal(Map<String, dynamic> signal) {
-    final signalText = '''
-🚀 ${signal['coin']} - ${signal['type']}
-
-📍 Entrada: ${signal['entry']}
-🎯 Alvos: ${signal['targets'].join(', ')}
-🛑 Stop Loss: ${signal['stopLoss']}
-
-Confiança: ${signal['confidence']}
-Status: ${signal['status']}
-    ''';
-
-    Clipboard.setData(ClipboardData(text: signalText));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Sinal copiado para a área de transferência!'),
-        backgroundColor: AppTheme.getPrimaryColor(context),
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 }

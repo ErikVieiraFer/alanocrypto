@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../../../models/user_model.dart';
 import '../../../models/post_model.dart';
 import '../../../services/user_service.dart';
 import '../../../services/post_service.dart';
 import '../../../services/auth_service.dart';
+import '../../../theme/theme_provider.dart';
 import '../../home/screens/home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -142,6 +144,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
     }
+  }
+
+  void _showSettings() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => const SettingsModal(),
+    );
   }
 
   Future<void> _logout() async {
@@ -310,6 +319,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: () => _editProfile(user),
                   ),
                   IconButton(
+                    icon: const Icon(Icons.settings),
+                    onPressed: _showSettings,
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.logout),
                     onPressed: _logout,
                   ),
@@ -401,6 +414,143 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class SettingsModal extends StatelessWidget {
+  const SettingsModal({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.settings, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                'Configurações',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Tema do Aplicativo',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 16),
+          _ThemeOption(
+            icon: Icons.wb_sunny,
+            title: 'Claro',
+            isSelected: themeProvider.themeMode == ThemeMode.light,
+            onTap: () => themeProvider.setThemeMode(ThemeMode.light),
+          ),
+          const SizedBox(height: 8),
+          _ThemeOption(
+            icon: Icons.nightlight_round,
+            title: 'Escuro',
+            isSelected: themeProvider.themeMode == ThemeMode.dark,
+            onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
+          ),
+          const SizedBox(height: 8),
+          _ThemeOption(
+            icon: Icons.brightness_auto,
+            title: 'Sistema',
+            isSelected: themeProvider.themeMode == ThemeMode.system,
+            onTap: () => themeProvider.setThemeMode(ThemeMode.system),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fechar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.icon,
+    required this.title,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withAlpha(26)
+              : (isDark ? Colors.grey[800] : Colors.grey[100]),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey[600],
+            ),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+          ],
+        ),
       ),
     );
   }
