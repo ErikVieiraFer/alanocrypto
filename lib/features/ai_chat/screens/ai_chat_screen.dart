@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alanoapp/theme/app_theme.dart';
+import '../../../services/ai_service.dart';
 
 class AIChatScreen extends StatefulWidget {
   const AIChatScreen({super.key});
@@ -9,64 +9,33 @@ class AIChatScreen extends StatefulWidget {
 }
 
 class _AIChatScreenState extends State<AIChatScreen> {
-  final TextEditingController _messageController = TextEditingController();
+  final AIService _aiService = AIService();
+  final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'text': 'Olá! Sou o assistente de trading do AlanoCryptoFX. Como posso te ajudar hoje?',
-      'isUser': false,
-      'timestamp': DateTime.now().subtract(const Duration(minutes: 5)),
-    },
-  ];
+  final List<ChatMessage> _messages = [];
+  final List<Map<String, String>> _conversationHistory = [];
+  bool _isLoading = false;
 
   @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _addMessage(
+      ChatMessage(
+        text: 'Olá! Sou seu assistente de trading. Como posso ajudar você hoje?',
+        isUser: false,
+      ),
+    );
   }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
-
-    final userMessage = _messageController.text.trim();
-    
+  void _addMessage(ChatMessage message) {
     setState(() {
-      _messages.add({
-        'text': userMessage,
-        'isUser': true,
-        'timestamp': DateTime.now(),
-      });
+      _messages.add(message);
     });
-
-    _messageController.clear();
     _scrollToBottom();
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _messages.add({
-          'text': _getAIResponse(userMessage),
-          'isUser': false,
-          'timestamp': DateTime.now(),
-        });
-      });
-      _scrollToBottom();
-    });
-  }
-
-  String _getAIResponse(String message) {
-    if (message.toLowerCase().contains('btc') || 
-        message.toLowerCase().contains('bitcoin')) {
-      return 'O Bitcoin está mostrando sinais interessantes. Recomendo acompanhar os níveis de suporte em \$49k e resistência em \$52k. Sempre use stop loss!';
-    } else if (message.toLowerCase().contains('eth') || 
-              message.toLowerCase().contains('ethereum')) {
-      return 'Ethereum está com boa perspectiva. O nível de \$3000 é crítico. Assista aos vídeos do Alano para análises mais detalhadas.';
-    } else {
-      return 'Entendi sua pergunta. Para análises específicas, recomendo conferir os posts e vídeos do Alano. Ele sempre traz insights valiosos!';
-    }
   }
 
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -77,168 +46,211 @@ class _AIChatScreenState extends State<AIChatScreen> {
     });
   }
 
+  Future<void> _sendMessage(String text) async {
+    if (text.trim().isEmpty) return;
+
+    final userMessage = ChatMessage(text: text, isUser: true);
+    _addMessage(userMessage);
+    _controller.clear();
+
+    _conversationHistory.add({'role': 'user', 'content': text});
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final response = await _aiService.sendMessage(text, _conversationHistory);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    _conversationHistory.add({'role': 'assistant', 'content': response});
+
+    final aiMessage = ChatMessage(text: response, isUser: false);
+    _addMessage(aiMessage);
+  }
+
+  void _sendSuggestedQuestion(String question) {
+    _controller.text = question;
+    _sendMessage(question);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textColor = AppTheme.getTextColor(context);
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
-    final textColor60 = AppTheme.getTextColor60(context);
-    final textColor50 = AppTheme.getTextColor50(context);
-    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: secondaryBackground,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.black20,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
                 ),
-              ],
+              ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: primaryColor20,
-                    borderRadius: BorderRadius.circular(12),
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withAlpha(26),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.psychology,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 28,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.smart_toy,
-                    color: primaryColor,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Assistente de Trading',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AI Trading Assistant',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
+                        Text(
+                          'Powered by ChatGPT',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_messages.isEmpty)
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.psychology_outlined,
+                        size: 64,
+                        color: Colors.grey[400],
                       ),
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Online',
-                            style: TextStyle(
-                              color: textColor60,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      Text(
+                        'Pergunte qualquer coisa sobre trading',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: _aiService.getSuggestedQuestions().map((question) {
+                          return ActionChip(
+                            label: Text(question),
+                            onPressed: () => _sendSuggestedQuestion(question),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.info_outline,
-                    color: textColor,
-                  ),
-                  onPressed: _showInfo,
-                ),
-              ],
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return MessageBubble(message: _messages[index]);
+                },
+              ),
             ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return _buildMessageBubble(_messages[index]);
-              },
-            ),
-          ),
-          if (_messages.length == 1)
-            Container(
+          if (_isLoading)
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              height: 50,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+              child: Row(
                 children: [
-                  _buildQuickSuggestion('Como está o BTC?'),
-                  _buildQuickSuggestion('Análise do ETH'),
-                  _buildQuickSuggestion('Dicas para iniciantes'),
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Pensando...',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                 ],
               ),
             ),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 8,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 8,
+            ),
             decoration: BoxDecoration(
-              color: secondaryBackground,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.black20,
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
                 ),
-              ],
+              ),
             ),
             child: SafeArea(
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: _messageController,
-                      style: TextStyle(color: textColor),
+                      controller: _controller,
                       decoration: InputDecoration(
-                        hintText: 'Digite sua mensagem...',
-                        hintStyle: TextStyle(
-                          color: textColor50,
-                        ),
-                        filled: true,
-                        fillColor: backgroundColor,
+                        hintText: 'Digite sua pergunta...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,
                         ),
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[800] : Colors.grey[200],
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
+                          horizontal: 16,
+                          vertical: 10,
                         ),
                       ),
-                      onSubmitted: (_) => _sendMessage(),
+                      maxLines: null,
+                      textCapitalization: TextCapitalization.sentences,
+                      onSubmitted: _sendMessage,
+                      enabled: !_isLoading,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.send,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? AppTheme.black 
-                            : AppTheme.white,
-                      ),
-                      onPressed: _sendMessage,
-                    ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _isLoading ? null : () => _sendMessage(_controller.text),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ],
               ),
@@ -249,14 +261,35 @@ class _AIChatScreenState extends State<AIChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> message) {
-    final isUser = message['isUser'] as bool;
-    final textColor = AppTheme.getTextColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
-    
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+}
+
+class ChatMessage {
+  final String text;
+  final bool isUser;
+
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+  });
+}
+
+class MessageBubble extends StatelessWidget {
+  final ChatMessage message;
+
+  const MessageBubble({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -264,107 +297,18 @@ class _AIChatScreenState extends State<AIChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isUser ? primaryColor : secondaryBackground,
+          color: message.isUser
+              ? Theme.of(context).colorScheme.primary
+              : (isDark ? Colors.grey[800] : Colors.grey[200]),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              message['text'],
-              style: TextStyle(
-                color: isUser
-                    ? (Theme.of(context).brightness == Brightness.dark 
-                        ? AppTheme.black 
-                        : AppTheme.white)
-                    : textColor,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _formatTime(message['timestamp']),
-              style: TextStyle(
-                color: isUser
-                    ? (Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xB3000000) 
-                        : const Color(0xB3FFFFFF))
-                    : AppTheme.getTextColor50(context),
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickSuggestion(String text) {
-    final textColor = AppTheme.getTextColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor30 = AppTheme.getPrimaryColor30(context);
-
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: ActionChip(
-        label: Text(text),
-        labelStyle: TextStyle(
-          color: textColor,
-          fontSize: 12,
-        ),
-        backgroundColor: secondaryBackground,
-        side: BorderSide(
-          color: primaryColor30,
-        ),
-        onPressed: () {
-          _messageController.text = text;
-          _sendMessage();
-        },
-      ),
-    );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 1) {
-      return 'Agora';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m atrás';
-    } else if (difference.inDays < 1) {
-      return '${difference.inHours}h atrás';
-    } else {
-      return '${dateTime.day}/${dateTime.month} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
-    }
-  }
-
-  void _showInfo() {
-    final textColor = AppTheme.getTextColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: secondaryBackground,
-        title: Text(
-          'Sobre o Assistente',
-          style: TextStyle(color: textColor),
-        ),
-        content: Text(
-          'Este assistente foi treinado para ajudar com dúvidas sobre trading e análises do mercado de criptomoedas.\n\nLembre-se: as informações fornecidas não são conselhos financeiros.',
-          style: TextStyle(color: textColor),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Entendi',
-              style: TextStyle(color: primaryColor),
-            ),
+        child: Text(
+          message.text,
+          style: TextStyle(
+            color: message.isUser ? Colors.white : null,
+            fontSize: 15,
           ),
-        ],
+        ),
       ),
     );
   }
