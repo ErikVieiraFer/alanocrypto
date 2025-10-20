@@ -23,6 +23,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
       ChatMessage(
         text: 'Olá! Sou seu assistente de trading. Como posso ajudar você hoje?',
         isUser: false,
+        isError: false,
       ),
     );
   }
@@ -49,7 +50,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    final userMessage = ChatMessage(text: text, isUser: true);
+    final userMessage = ChatMessage(text: text, isUser: true, isError: false);
     _addMessage(userMessage);
     _controller.clear();
 
@@ -65,9 +66,20 @@ class _AIChatScreenState extends State<AIChatScreen> {
       _isLoading = false;
     });
 
-    _conversationHistory.add({'role': 'assistant', 'content': response});
+    final isError = response.startsWith('❌') || 
+                    response.startsWith('⏱️') || 
+                    response.startsWith('💳') ||
+                    response.startsWith('📡');
 
-    final aiMessage = ChatMessage(text: response, isUser: false);
+    if (!isError) {
+      _conversationHistory.add({'role': 'assistant', 'content': response});
+    }
+
+    final aiMessage = ChatMessage(
+      text: response, 
+      isUser: false,
+      isError: isError,
+    );
     _addMessage(aiMessage);
   }
 
@@ -135,56 +147,53 @@ class _AIChatScreenState extends State<AIChatScreen> {
               ),
             ),
           ),
-          if (_messages.isEmpty)
-            Expanded(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.psychology_outlined,
-                        size: 64,
-                        color: Colors.grey[400],
+          Expanded(
+            child: _messages.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.psychology_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Pergunte qualquer coisa sobre trading',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: _aiService.getSuggestedQuestions().map((question) {
+                              return ActionChip(
+                                label: Text(question),
+                                onPressed: () => _sendSuggestedQuestion(question),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Pergunte qualquer coisa sobre trading',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: _aiService.getSuggestedQuestions().map((question) {
-                          return ActionChip(
-                            label: Text(question),
-                            onPressed: () => _sendSuggestedQuestion(question),
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      return MessageBubble(message: _messages[index]);
+                    },
                   ),
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  return MessageBubble(message: _messages[index]);
-                },
-              ),
-            ),
+          ),
           if (_isLoading)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -272,10 +281,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
 class ChatMessage {
   final String text;
   final bool isUser;
+  final bool isError;
 
   ChatMessage({
     required this.text,
     required this.isUser,
+    required this.isError,
   });
 }
 
@@ -288,6 +299,20 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    Color backgroundColor;
+    Color? textColor;
+
+    if (message.isUser) {
+      backgroundColor = Theme.of(context).colorScheme.primary;
+      textColor = Colors.white;
+    } else if (message.isError) {
+      backgroundColor = Colors.red.withAlpha(26);
+      textColor = Colors.red[700];
+    } else {
+      backgroundColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+      textColor = null;
+    }
+
     return Align(
       alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -297,15 +322,16 @@ class MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: message.isUser
-              ? Theme.of(context).colorScheme.primary
-              : (isDark ? Colors.grey[800] : Colors.grey[200]),
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(16),
+          border: message.isError
+              ? Border.all(color: Colors.red.withAlpha(77), width: 1)
+              : null,
         ),
         child: Text(
           message.text,
           style: TextStyle(
-            color: message.isUser ? Colors.white : null,
+            color: textColor,
             fontSize: 15,
           ),
         ),

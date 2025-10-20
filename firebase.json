@@ -1,1 +1,16 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"alanocryptofx","appId":"1:755553491761:android:cd8bb7af12f9a2a32aee10","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"alanocryptofx","configurations":{"android":"1:755553491761:android:cd8bb7af12f9a2a32aee10","ios":"1:755553491761:ios:f54e44b42bf2efe52aee10","macos":"1:755553491761:ios:f54e44b42bf2efe52aee10","web":"1:755553491761:web:7a288eebd6ff9d092aee10","windows":"1:755553491761:web:76bf20593e2eb10f2aee10"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
