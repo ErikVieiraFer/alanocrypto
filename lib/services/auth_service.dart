@@ -1,13 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  late final GoogleSignIn _googleSignIn;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final UserService _userService = UserService();
+
+  AuthService() {
+    _googleSignIn = GoogleSignIn(
+      clientId: kIsWeb 
+        ? '755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com'
+        : null,
+    );
+  }
 
   User? get currentUser => _auth.currentUser;
   
@@ -15,28 +24,44 @@ class AuthService {
 
   Future<User?> signInWithGoogle() async {
     try {
-      await _googleSignIn.signOut();
+      if (kIsWeb) {
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        
+        googleProvider.setCustomParameters({
+          'prompt': 'select_account'
+        });
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        final UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
 
-      if (googleUser == null) {
-        return null;
+        if (userCredential.user != null) {
+          await _userService.createOrUpdateUser(userCredential.user!);
+        }
+
+        return userCredential.user;
+      } else {
+        await _googleSignIn.signOut();
+
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+        if (googleUser == null) {
+          return null;
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
+        if (userCredential.user != null) {
+          await _userService.createOrUpdateUser(userCredential.user!);
+        }
+
+        return userCredential.user;
       }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-
-      if (userCredential.user != null) {
-        await _userService.createOrUpdateUser(userCredential.user!);
-      }
-
-      return userCredential.user;
     } catch (e) {
       print('Erro no login com Google: $e');
       return null;
@@ -45,7 +70,9 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      if (!kIsWeb) {
+        await _googleSignIn.signOut();
+      }
       await _auth.signOut();
     } catch (e) {
       print('Erro no logout: $e');
