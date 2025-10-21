@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,7 +10,7 @@ class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final Uuid _uuid = Uuid();
+  final Uuid _uuid = const Uuid();
 
   Stream<List<Post>> getPosts() {
     return _firestore
@@ -22,14 +23,22 @@ class PostService {
     });
   }
 
-  Future<String?> uploadImage(File imageFile) async {
+  Future<String?> uploadImage(File? imageFile, Uint8List? imageBytes) async {
     try {
       final String fileName = '${_uuid.v4()}.jpg';
       final Reference ref = _storage.ref().child('posts/$fileName');
       
-      final UploadTask uploadTask = ref.putFile(imageFile);
-      final TaskSnapshot snapshot = await uploadTask;
+      UploadTask uploadTask;
       
+      if (imageBytes != null) {
+        uploadTask = ref.putData(imageBytes);
+      } else if (imageFile != null) {
+        uploadTask = ref.putFile(imageFile);
+      } else {
+        return null;
+      }
+      
+      final TaskSnapshot snapshot = await uploadTask;
       final String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
@@ -41,14 +50,15 @@ class PostService {
   Future<bool> createPost({
     required String content,
     File? imageFile,
+    Uint8List? imageBytes,
   }) async {
     try {
       final User? user = _auth.currentUser;
       if (user == null) return false;
 
       String? imageUrl;
-      if (imageFile != null) {
-        imageUrl = await uploadImage(imageFile);
+      if (imageFile != null || imageBytes != null) {
+        imageUrl = await uploadImage(imageFile, imageBytes);
       }
 
       final Post newPost = Post(

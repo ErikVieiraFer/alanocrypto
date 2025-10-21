@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -7,6 +8,7 @@ import '../../../models/post_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'comments_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -432,16 +434,21 @@ class PostCard extends StatelessWidget {
 class CreatePostModal extends StatefulWidget {
   final VoidCallback onPostCreated;
 
-  const CreatePostModal({super.key, required this.onPostCreated});
+  const CreatePostModal({
+    super.key,
+    required this.onPostCreated,
+  });
 
   @override
   State<CreatePostModal> createState() => _CreatePostModalState();
 }
 
 class _CreatePostModalState extends State<CreatePostModal> {
-  final TextEditingController _controller = TextEditingController();
   final PostService _postService = PostService();
+  final TextEditingController _controller = TextEditingController();
+  
   File? _selectedImage;
+  Uint8List? _webImage;
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
@@ -454,14 +461,21 @@ class _CreatePostModalState extends State<CreatePostModal> {
     );
 
     if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
+      if (kIsWeb) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _webImage = bytes;
+        });
+      } else {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
     }
   }
 
   Future<void> _createPost() async {
-    if (_controller.text.trim().isEmpty && _selectedImage == null) {
+    if (_controller.text.trim().isEmpty && _selectedImage == null && _webImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Adicione um texto ou imagem'),
@@ -478,6 +492,7 @@ class _CreatePostModalState extends State<CreatePostModal> {
     final success = await _postService.createPost(
       content: _controller.text.trim(),
       imageFile: _selectedImage,
+      imageBytes: _webImage,
     );
 
     setState(() {
@@ -558,7 +573,33 @@ class _CreatePostModalState extends State<CreatePostModal> {
               ),
             ),
           ),
-          if (_selectedImage != null)
+          if (kIsWeb && _webImage != null)
+            Stack(
+              children: [
+                Image.memory(
+                  _webImage!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black54,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _webImage = null;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            )
+          else if (!kIsWeb && _selectedImage != null)
             Stack(
               children: [
                 Image.file(
