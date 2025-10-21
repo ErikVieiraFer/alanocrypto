@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../models/comment_model.dart';
 import '../../../services/comment_service.dart';
+import '../../../theme/app_theme.dart';
 
 class CommentsScreen extends StatefulWidget {
   final String postId;
@@ -71,11 +72,24 @@ class _CommentsScreenState extends State<CommentsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final startColor = isDark ? AppTheme.greenDark : AppTheme.greenPrimary;
+    final endColor = isDark ? AppTheme.darkBackground : AppTheme.greenDark;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Comentários'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [startColor, endColor],
+              tileMode: TileMode.clamp,
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [

@@ -6,6 +6,7 @@ import 'package:alanoapp/features/profile/screens/profile_screen.dart';
 import 'package:alanoapp/features/alano_posts/screens/alano_posts_screen.dart';
 import 'package:alanoapp/features/ai_chat/screens/ai_chat_screen.dart';
 import 'package:alanoapp/features/signals/screens/signals_screen.dart';
+import '../../../widgets/app_drawer.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,6 +16,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 0;
   bool _hasNotifications = true;
 
@@ -26,14 +28,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const SignalsScreen(),
   ];
 
-// final List<String> _titles = [
-//    'Home',
-//    'Perfil',
-//    'Posts do Alano',
-//    'AI Chat',
-//    'Sinais',
-//  ];
-
   @override
   Widget build(BuildContext context) {
     final textColor = AppTheme.getTextColor(context);
@@ -41,32 +35,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
     final primaryColor = AppTheme.getPrimaryColor(context);
     final primaryColor20 = AppTheme.getPrimaryColor20(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final startColor = isDark ? AppTheme.greenDark : AppTheme.greenPrimary;
+    final endColor = isDark ? AppTheme.darkBackground : AppTheme.greenDark;
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: AppDrawer(
+        currentIndex: _currentIndex,
+        onNavigate: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: secondaryBackground,
+        leading: IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [startColor, endColor],
+              tileMode: TileMode.clamp,
+            ),
+          ),
+        ),
         title: Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: primaryColor20,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.currency_bitcoin,
-                color: primaryColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
             Text(
               'AC',
               style: TextStyle(
-                color: AppTheme.greenSecondary,
+                color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -75,7 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'AlanoCryptoFX',
               style: TextStyle(
-                color: textColor,
+                color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -88,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               IconButton(
                 icon: Icon(
                   Icons.notifications_outlined,
-                  color: textColor,
+                  color: Colors.white,
                 ),
                 onPressed: () {
                   _showNotifications(context);

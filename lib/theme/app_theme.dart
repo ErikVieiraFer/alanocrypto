@@ -4,16 +4,12 @@ class AppTheme {
   static const Color greenPrimary = Color(0xFF00C853);
   static const Color greenSecondary = Color(0xFF00C853);
   static const Color greenDark = Color(0xFF00A040);
-  
   static const Color darkBackground = Color(0xFF000000);
   static const Color darkSecondary = Color(0xFF1A1A1A);
-  
   static const Color lightBackground = Color(0xFFFFFFFF);
   static const Color lightSecondary = Color(0xFFF5F5F5);
-  
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
-  
   static const Color greenPrimary20 = Color(0x3300C853);
   static const Color greenPrimary30 = Color(0x4D00C853);
   static const Color white60 = Color(0x99FFFFFF);
@@ -23,6 +19,18 @@ class AppTheme {
   static const Color black70 = Color(0xB3000000);
   static const Color black30 = Color(0x4D000000);
   static const Color black20 = Color(0x33000000);
+
+  static LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [greenPrimary30, greenPrimary20],
+  );
+
+  static LinearGradient darkGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [const Color(0xFF1A1A1A), const Color(0xFF0A0A0A)],
+  );
 
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
@@ -35,10 +43,20 @@ class AppTheme {
       surface: darkSecondary,
       background: darkBackground,
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: darkSecondary,
+    
+    drawerTheme: const DrawerThemeData(
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      iconTheme: IconThemeData(color: white),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      iconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
     ),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: white),
@@ -61,9 +79,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: greenPrimary,
         foregroundColor: black,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -83,10 +99,20 @@ class AppTheme {
       surface: lightSecondary,
       background: lightBackground,
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: lightSecondary,
+    
+    drawerTheme: const DrawerThemeData(
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      iconTheme: IconThemeData(color: black),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      iconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
     ),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(color: black),
@@ -109,9 +135,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: greenDark,
         foregroundColor: white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -125,50 +149,47 @@ class AppTheme {
   }
 
   static Color getBackgroundColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? darkBackground 
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkBackground
         : lightBackground;
   }
 
   static Color getSecondaryBackgroundColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? darkSecondary 
+    return Theme.of(context).brightness == Brightness.dark
+        ? darkSecondary
         : lightSecondary;
   }
 
   static Color getPrimaryColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? greenPrimary 
+    return Theme.of(context).brightness == Brightness.dark
+        ? greenPrimary
         : greenDark;
   }
 
   static Color getTextColor60(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? white60 
-        : black70;
+    return Theme.of(context).brightness == Brightness.dark ? white60 : black70;
   }
 
   static Color getTextColor50(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? white50 
-        : Color(0x80000000);
+    return Theme.of(context).brightness == Brightness.dark
+        ? white50
+        : const Color(0x80000000);
   }
 
   static Color getTextColor30(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? white30 
-        : black30;
+    return Theme.of(context).brightness == Brightness.dark ? white30 : black30;
   }
 
   static Color getPrimaryColor20(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? greenPrimary20 
-        : Color(0x3300A040);
+    return Theme.of(context).brightness == Brightness.dark
+        ? greenPrimary20
+        : const Color(0x3300A040);
   }
 
   static Color getPrimaryColor30(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark 
-        ? greenPrimary30 
-        : Color(0x4D00A040);
+    return Theme.of(context).brightness == Brightness.dark
+        ? greenPrimary30
+        : const Color(0x4D00A040);
   }
 }
+

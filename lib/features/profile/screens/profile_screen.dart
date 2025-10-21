@@ -10,6 +10,7 @@ import '../../../services/user_service.dart';
 import '../../../services/post_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../theme/theme_provider.dart';
+import '../../../theme/app_theme.dart';
 import '../../home/screens/home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -211,22 +212,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return const Center(child: Text('Usuário não encontrado'));
           }
 
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final startColor = isDark ? AppTheme.greenDark : AppTheme.greenPrimary;
+          final endColor = isDark ? AppTheme.darkBackground : AppTheme.greenDark;
+
           return CustomScrollView(
             slivers: [
               SliverAppBar(
                 expandedHeight: 200,
                 pinned: true,
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primary.withAlpha(204),
-                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [startColor, endColor],
+                        tileMode: TileMode.clamp,
                       ),
                     ),
                     child: SafeArea(
@@ -352,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     return const SliverToBoxAdapter(
                       child: Center(
                         child: Padding(
-                          padding: EdgeInsets.all(32.0),
+                          padding: const EdgeInsets.all(32.0),
                           child: CircularProgressIndicator(),
                         ),
                       ),
@@ -414,7 +417,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           );
         },
-      ),
+      )
     );
   }
 }
