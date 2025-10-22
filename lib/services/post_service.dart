@@ -87,12 +87,16 @@ class PostService {
   Future<void> toggleLike(String postId) async {
     try {
       final User? user = _auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        throw Exception('Você precisa estar conectado para curtir');
+      }
 
       final DocumentReference postRef = _firestore.collection('posts').doc(postId);
       final DocumentSnapshot postDoc = await postRef.get();
 
-      if (!postDoc.exists) return;
+      if (!postDoc.exists) {
+        throw Exception('Post não encontrado');
+      }
 
       final Post post = Post.fromFirestore(postDoc);
       final List<String> likedBy = List.from(post.likedBy);
@@ -115,8 +119,18 @@ class PostService {
       }
 
       await postRef.update({'likedBy': likedBy});
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        throw Exception('Erro ao curtir: Permissões insuficientes. Verifique suas configurações');
+      } else if (e.code == 'unavailable') {
+        throw Exception('Erro ao curtir: Conexão perdida. Verifique sua internet');
+      }
+      throw Exception('Erro ao curtir: ${e.message}');
     } catch (e) {
-      print('Erro ao dar like: $e');
+      if (e.toString().contains('conectado') || e.toString().contains('encontrado')) {
+        rethrow;
+      }
+      throw Exception('Erro ao curtir post: $e');
     }
   }
 

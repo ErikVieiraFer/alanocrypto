@@ -26,7 +26,13 @@ class CommentService {
   }) async {
     try {
       final User? user = _auth.currentUser;
-      if (user == null) return false;
+      if (user == null) {
+        throw Exception('Você precisa estar conectado para comentar');
+      }
+
+      if (content.trim().isEmpty) {
+        throw Exception('Comentário não pode estar vazio');
+      }
 
       final Comment newComment = Comment(
         id: '',
@@ -60,9 +66,20 @@ class CommentService {
       }
 
       return true;
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        throw Exception('Erro ao comentar: Permissões insuficientes. Verifique suas configurações');
+      } else if (e.code == 'unavailable') {
+        throw Exception('Erro ao comentar: Conexão perdida. Verifique sua internet');
+      } else if (e.code == 'not-found') {
+        throw Exception('Erro ao comentar: Post não encontrado');
+      }
+      throw Exception('Erro ao comentar: ${e.message}');
     } catch (e) {
-      print('Erro ao criar comentário: $e');
-      return false;
+      if (e.toString().contains('conectado') || e.toString().contains('vazio')) {
+        rethrow;
+      }
+      throw Exception('Erro ao criar comentário: $e');
     }
   }
 

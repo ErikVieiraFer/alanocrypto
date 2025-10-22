@@ -35,7 +35,9 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      print('Erro ao verificar redirect: $e');
+      if (mounted) {
+        _showErrorDialog('Erro ao processar login', e.toString());
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -51,30 +53,22 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final userCredential = await _authService.signInWithGoogle();
+      final user = await _authService.signInWithGoogle();
 
-      if (userCredential != null && mounted) {
+      if (user != null && mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const DashboardScreen()),
         );
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login cancelado'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
       }
+      // Se user for null, pode ser redirect do Safari (não precisa mostrar erro)
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro no login: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        final errorMessage = e.toString();
+
+        // Não mostrar erro se usuário cancelou
+        if (!errorMessage.contains('cancelado pelo usuário')) {
+          _showErrorDialog('Erro ao fazer login', errorMessage);
+        }
       }
     } finally {
       if (mounted) {
@@ -83,6 +77,54 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.getSecondaryBackgroundColor(context),
+        title: Row(
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Colors.red,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: AppTheme.getTextColor(context),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(
+            color: AppTheme.getTextColor(context),
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                color: AppTheme.getPrimaryColor(context),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

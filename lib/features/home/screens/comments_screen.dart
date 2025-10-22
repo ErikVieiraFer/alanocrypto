@@ -28,26 +28,41 @@ class _CommentsScreenState extends State<CommentsScreen> {
       _isLoading = true;
     });
 
-    final success = await _commentService.createComment(
-      postId: widget.postId,
-      content: _controller.text.trim(),
-    );
+    try {
+      final success = await _commentService.createComment(
+        postId: widget.postId,
+        content: _controller.text.trim(),
+      );
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (success) {
+        _controller.clear();
+        FocusScope.of(context).unfocus();
 
-    if (success) {
-      _controller.clear();
-      FocusScope.of(context).unfocus();
-    } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Comentário adicionado!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao adicionar comentário'),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }

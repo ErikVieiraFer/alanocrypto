@@ -378,7 +378,21 @@ class PostCard extends StatelessWidget {
             child: Row(
               children: [
                 InkWell(
-                  onTap: () => PostService().toggleLike(post.id),
+                  onTap: () async {
+                    try {
+                      await PostService().toggleLike(post.id);
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString().replaceAll('Exception: ', '')),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    }
+                  },
                   child: Row(
                     children: [
                       Icon(
