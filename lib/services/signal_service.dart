@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/signal_model.dart';
+import '../models/notification_model.dart';
 
 class SignalService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -48,16 +49,70 @@ class SignalService {
     });
   }
 
+  Future<bool> createSignal({
+    required String coin,
+    required SignalType type,
+    required double entry,
+    required List<double> targets,
+    required double stopLoss,
+    required int confidence,
+  }) async {
+    try {
+      final newSignal = Signal(
+        id: '', // Firestore will generate it
+        coin: coin,
+        type: type,
+        entry: entry,
+        targets: targets,
+        stopLoss: stopLoss,
+        confidence: confidence,
+        status: SignalStatus.active,
+        createdAt: DateTime.now(),
+      );
+
+      final signalDocRef = await _firestore.collection('signals').add(newSignal.toFirestore());
+
+      // Fan-out Notification Logic
+      final usersSnapshot = await _firestore.collection('users').get();
+      if (usersSnapshot.docs.isEmpty) {
+        return true; // No users to notify
+      }
+
+      final batch = _firestore.batch();
+      final notificationsCollection = _firestore.collection('notifications');
+
+      for (final userDoc in usersSnapshot.docs) {
+        final newNotifRef = notificationsCollection.doc();
+        batch.set(newNotifRef, {
+          'userId': userDoc.id,
+          'type': NotificationType.signal.name,
+          'title': 'Novo sinal para $coin!',
+          'content': 'Entrada: $entry, Alvo 1: ${targets.first}, Stop: $stopLoss',
+          'read': false,
+          'relatedId': signalDocRef.id,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+
+      return true;
+    } catch (e) {
+      print('Erro ao criar sinal: $e');
+      return false;
+    }
+  }
+
   String formatSignalText(Signal signal) {
     final buffer = StringBuffer();
     buffer.writeln('🎯 ${signal.coin}');
     buffer.writeln('📊 Tipo: ${signal.typeLabel}');
-    buffer.writeln('💰 Entrada: \$${signal.entry.toStringAsFixed(2)}');
+    buffer.writeln('💰 Entrada: \${signal.entry.toStringAsFixed(2)}');
     buffer.writeln('🎯 Alvos:');
     for (int i = 0; i < signal.targets.length; i++) {
-      buffer.writeln('   Alvo ${i + 1}: \$${signal.targets[i].toStringAsFixed(2)}');
+      buffer.writeln('   Alvo ${i + 1}: \${signal.targets[i].toStringAsFixed(2)}');
     }
-    buffer.writeln('🛑 Stop Loss: \$${signal.stopLoss.toStringAsFixed(2)}');
+    buffer.writeln('🛑 Stop Loss: \${signal.stopLoss.toStringAsFixed(2)}');
     buffer.writeln('⚡ Confiança: ${signal.confidence}%');
     
     return buffer.toString();

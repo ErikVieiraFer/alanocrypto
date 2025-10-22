@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alanoapp/theme/app_theme.dart';
 import 'package:alanoapp/features/home/screens/home_screen.dart';
 import 'package:alanoapp/features/profile/screens/profile_screen.dart';
 import 'package:alanoapp/features/alano_posts/screens/alano_posts_screen.dart';
 import 'package:alanoapp/features/ai_chat/screens/ai_chat_screen.dart';
 import 'package:alanoapp/features/signals/screens/signals_screen.dart';
+import 'package:alanoapp/features/notifications/screens/notifications_screen.dart';
+import 'package:alanoapp/services/notification_service.dart';
 import '../../../widgets/app_drawer.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -18,7 +21,9 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentIndex = 0;
-  bool _hasNotifications = true;
+
+  final NotificationService _notificationService = NotificationService();
+  final String? _userId = FirebaseAuth.instance.currentUser?.uid;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -26,7 +31,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const AlanoPostsScreen(),
     const AIChatScreen(),
     const SignalsScreen(),
+    const NotificationsScreen(), // Tela adicionada
   ];
+
+  void _navigateToNotifications() {
+    setState(() {
+      _currentIndex = 5; // Índice da tela de notificações
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: backgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.menu),
+          icon: const Icon(Icons.menu),
           onPressed: () {
             _scaffoldKey.currentState?.openDrawer();
           },
@@ -71,7 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         title: Row(
-          children: [
+          children: const [
             Text(
               'AC',
               style: TextStyle(
@@ -80,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               'AlanoCryptoFX',
               style: TextStyle(
@@ -92,36 +104,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.notifications_outlined,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  _showNotifications(context);
-                },
-              ),
-              if (_hasNotifications)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: secondaryBackground,
-                        width: 2,
+          if (_userId != null)
+            StreamBuilder<int>(
+              stream: _notificationService.getUnreadCount(_userId!),
+              builder: (context, snapshot) {
+                final unreadCount = snapshot.data ?? 0;
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
                       ),
+                      onPressed: _navigateToNotifications,
                     ),
-                  ),
-                ),
-            ],
-          ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: secondaryBackground, width: 2),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           const SizedBox(width: 8),
         ],
       ),
@@ -191,6 +217,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   primaryColor: primaryColor,
                   primaryColor20: primaryColor20,
                 ),
+                 if (_userId != null)
+                  StreamBuilder<int>(
+                    stream: _notificationService.getUnreadCount(_userId!),
+                    builder: (context, snapshot) {
+                      return _buildNavItem(
+                        icon: Icons.notifications_outlined,
+                        activeIcon: Icons.notifications,
+                        label: 'Alertas',
+                        index: 5,
+                        textColor: textColor,
+                        primaryColor: primaryColor,
+                        primaryColor20: primaryColor20,
+                        badgeCount: snapshot.data ?? 0,
+                      );
+                    },
+                  ),
               ],
             ),
           ),
@@ -207,6 +249,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color textColor,
     required Color primaryColor,
     required Color primaryColor20,
+    int badgeCount = 0,
   }) {
     final isActive = _currentIndex == index;
 
@@ -216,167 +259,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _currentIndex = index;
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? primaryColor20 : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              color: isActive ? primaryColor : textColor,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? primaryColor : textColor,
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showNotifications(BuildContext context) {
-    final textColor = AppTheme.getTextColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
-    final primaryColor20 = AppTheme.getPrimaryColor20(context);
-    final textColor60 = AppTheme.getTextColor60(context);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: secondaryBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Notificações',
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: textColor),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildNotificationItem(
-                'João comentou no seu post',
-                '5 min atrás',
-                Icons.comment,
-                backgroundColor,
-                primaryColor20,
-                primaryColor,
-                textColor,
-                textColor60,
-              ),
-              _buildNotificationItem(
-                'Maria respondeu seu comentário',
-                '1 hora atrás',
-                Icons.reply,
-                backgroundColor,
-                primaryColor20,
-                primaryColor,
-                textColor,
-                textColor60,
-              ),
-              _buildNotificationItem(
-                'Novo sinal postado pelo Alano',
-                '2 horas atrás',
-                Icons.trending_up,
-                backgroundColor,
-                primaryColor20,
-                primaryColor,
-                textColor,
-                textColor60,
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildNotificationItem(
-    String title,
-    String time,
-    IconData icon,
-    Color backgroundColor,
-    Color primaryColor20,
-    Color primaryColor,
-    Color textColor,
-    Color textColor60,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: primaryColor20,
-              shape: BoxShape.circle,
+              color: isActive ? primaryColor20 : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: primaryColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Icon(
+                  isActive ? activeIcon : icon,
+                  color: isActive ? primaryColor : textColor,
+                  size: 24,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  time,
+                  label,
                   style: TextStyle(
-                    color: textColor60,
-                    fontSize: 12,
+                    color: isActive ? primaryColor : textColor,
+                    fontSize: 10,
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],
             ),
           ),
+          if (badgeCount > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Theme.of(context).canvasColor, width: 1),
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Text(
+                  '$badgeCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );

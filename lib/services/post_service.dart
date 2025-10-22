@@ -5,11 +5,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 import '../models/post_model.dart';
+import '../models/notification_model.dart';
+import 'notification_service.dart';
 
 class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
   final Uuid _uuid = const Uuid();
 
   Stream<List<Post>> getPosts() {
@@ -94,10 +97,21 @@ class PostService {
       final Post post = Post.fromFirestore(postDoc);
       final List<String> likedBy = List.from(post.likedBy);
 
-      if (likedBy.contains(user.uid)) {
-        likedBy.remove(user.uid);
-      } else {
+      final bool isLiking = !likedBy.contains(user.uid);
+
+      if (isLiking) {
         likedBy.add(user.uid);
+        if (user.uid != post.userId) {
+          await _notificationService.createNotification(
+            userId: post.userId,
+            type: NotificationType.like,
+            title: '${user.displayName ?? 'Alguém'} curtiu seu post',
+            content: post.content.length > 50 ? '${post.content.substring(0, 50)}...' : post.content,
+            relatedId: postId,
+          );
+        }
+      } else {
+        likedBy.remove(user.uid);
       }
 
       await postRef.update({'likedBy': likedBy});

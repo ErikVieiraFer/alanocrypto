@@ -47,3 +47,5 @@ app.*.map.json
 # Secret files
 .env
 assets/.env
+CLAUDE.md
+.claude

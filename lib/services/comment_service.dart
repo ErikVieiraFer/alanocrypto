@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/comment_model.dart';
+import '../models/notification_model.dart';
+import 'notification_service.dart';
 
 class CommentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   Stream<List<Comment>> getComments(String postId) {
     return _firestore
@@ -40,6 +43,21 @@ class CommentService {
       await _firestore.collection('posts').doc(postId).update({
         'commentsCount': FieldValue.increment(1),
       });
+
+      // Lógica de notificação
+      final postDoc = await _firestore.collection('posts').doc(postId).get();
+      if (postDoc.exists) {
+        final postOwnerId = postDoc.data()!['userId'];
+        if (user.uid != postOwnerId) {
+          await _notificationService.createNotification(
+            userId: postOwnerId,
+            type: NotificationType.comment,
+            title: '${user.displayName ?? 'Alguém'} comentou no seu post',
+            content: content,
+            relatedId: postId,
+          );
+        }
+      }
 
       return true;
     } catch (e) {

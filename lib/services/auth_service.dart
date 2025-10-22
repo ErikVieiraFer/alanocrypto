@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'user_service.dart';
 
+// Conditional import for web-specific functionality
+import 'package:universal_html/html.dart' as html;
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late final GoogleSignIn _googleSignIn;
@@ -26,18 +29,30 @@ class AuthService {
     try {
       if (kIsWeb) {
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
-        
+
         googleProvider.setCustomParameters({
           'prompt': 'select_account'
         });
 
-        final UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
+        // Detectar Safari/iOS e usar redirect
+        final userAgent = html.window.navigator.userAgent;
+        final isSafari = userAgent.contains('Safari') && !userAgent.contains('Chrome');
+        final isIOS = userAgent.contains('iPhone') || userAgent.contains('iPad') || userAgent.contains('iPod');
 
-        if (userCredential.user != null) {
-          await _userService.createOrUpdateUser(userCredential.user!);
+        if (isSafari || isIOS) {
+          // Usar redirect para Safari/iOS
+          await _auth.signInWithRedirect(googleProvider);
+          return null; // O resultado será tratado pelo getRedirectResult
+        } else {
+          // Usar popup para outros browsers
+          final UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
+
+          if (userCredential.user != null) {
+            await _userService.createOrUpdateUser(userCredential.user!);
+          }
+
+          return userCredential.user;
         }
-
-        return userCredential.user;
       } else {
         await _googleSignIn.signOut();
 
@@ -64,6 +79,24 @@ class AuthService {
       }
     } catch (e) {
       print('Erro no login com Google: $e');
+      return null;
+    }
+  }
+
+  /// Método para processar o resultado do redirect (Safari/iOS)
+  Future<User?> handleRedirectResult() async {
+    try {
+      if (kIsWeb) {
+        final UserCredential? userCredential = await _auth.getRedirectResult();
+
+        if (userCredential != null && userCredential.user != null) {
+          await _userService.createOrUpdateUser(userCredential.user!);
+          return userCredential.user;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Erro ao processar redirect: $e');
       return null;
     }
   }

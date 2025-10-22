@@ -15,6 +15,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkRedirectResult();
+  }
+
+  Future<void> _checkRedirectResult() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = await _authService.handleRedirectResult();
+
+      if (user != null && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      }
+    } catch (e) {
+      print('Erro ao verificar redirect: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   Future<void> _loginWithGoogle() async {
     setState(() {
       _isLoading = true;
