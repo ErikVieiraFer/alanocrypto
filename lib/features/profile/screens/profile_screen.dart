@@ -5,16 +5,15 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../../models/user_model.dart';
-import '../../../models/post_model.dart';
 import '../../../services/user_service.dart';
-import '../../../services/post_service.dart';
 import '../../../services/auth_service.dart';
 import '../../../theme/theme_provider.dart';
 import '../../../theme/app_theme.dart';
-import '../../home/screens/home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String? userId; // Opcional: para ver perfil de outros usuários
+
+  const ProfileScreen({super.key, this.userId});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -22,7 +21,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService _userService = UserService();
-  final PostService _postService = PostService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _editProfile(UserModel user) async {
@@ -186,7 +184,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userId = _auth.currentUser?.uid;
+    // Se userId foi passado, usa ele; senão usa o usuário logado
+    final userId = widget.userId ?? _auth.currentUser?.uid;
+    final isOwnProfile = userId == _auth.currentUser?.uid;
 
     if (userId == null) {
       return const Scaffold(
@@ -250,32 +250,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       )
                                     : null,
                               ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: GestureDetector(
-                                  onTap: () => _changeProfilePhoto(user),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withAlpha(51),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.camera_alt,
-                                      size: 20,
-                                      color: Colors.black87,
+                              if (isOwnProfile)
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: () => _changeProfilePhoto(user),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withAlpha(51),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        size: 20,
+                                        color: Colors.black87,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -317,102 +318,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => _editProfile(user),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: _showSettings,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.logout),
-                    onPressed: _logout,
-                  ),
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.grid_on),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Meus Posts',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              StreamBuilder<List<Post>>(
-                stream: _postService.getPosts(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SliverToBoxAdapter(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (snapshot.hasError) {
-                    return SliverToBoxAdapter(
-                      child: Center(
-                        child: Text('Erro ao carregar posts: ${snapshot.error}'),
-                      ),
-                    );
-                  }
-
-                  final allPosts = snapshot.data ?? [];
-                  final userPosts = allPosts.where((post) => post.userId == userId).toList();
-
-                  if (userPosts.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.article_outlined,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Nenhum post ainda',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final post = userPosts[index];
-                        return PostCard(
-                          post: post,
-                          currentUserId: userId,
-                        );
-                      },
-                      childCount: userPosts.length,
+                  if (isOwnProfile) ...[
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _editProfile(user),
                     ),
-                  );
-                },
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: _showSettings,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.logout),
+                      onPressed: _logout,
+                    ),
+                  ],
+                ],
               ),
             ],
           );

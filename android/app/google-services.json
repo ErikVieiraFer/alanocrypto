@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "755553491761-vn73p6opdl47k4ctn5dliq224716apgp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.alanoapp",
+            "certificate_hash": "74e6fb98076fee2856ee40a084d83a3c779032af"
+          }
+        },
+        {
           "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
           "client_type": 3
         }

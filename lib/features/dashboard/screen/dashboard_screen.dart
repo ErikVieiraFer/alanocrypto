@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alanoapp/theme/app_theme.dart';
-import 'package:alanoapp/features/home/screens/home_screen.dart';
+import 'package:alanoapp/features/home/screens/group_chat_screen.dart';
 import 'package:alanoapp/features/profile/screens/profile_screen.dart';
 import 'package:alanoapp/features/alano_posts/screens/alano_posts_screen.dart';
 import 'package:alanoapp/features/ai_chat/screens/ai_chat_screen.dart';
@@ -26,7 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final String? _userId = FirebaseAuth.instance.currentUser?.uid;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    const GroupChatScreen(),
     const ProfileScreen(),
     const AlanoPostsScreen(),
     const AIChatScreen(),
@@ -173,9 +173,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home,
-                  label: 'Home',
+                  icon: Icons.chat_outlined,
+                  activeIcon: Icons.chat,
+                  label: 'Chat',
                   index: 0,
                   textColor: textColor,
                   primaryColor: primaryColor,
