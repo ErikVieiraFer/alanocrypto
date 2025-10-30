@@ -15,19 +15,24 @@ import 'package:alanoapp/firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
-  // Configure Firebase App Check
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug, // Use debug provider for development
-    appleProvider: AppleProvider.debug,     // Use debug provider for development
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.debug,
+    );
+  } catch (e) {
+    if (e.toString().contains('duplicate-app')) {
+      // Firebase already initialized
+    } else {
+      rethrow;
+    }
+  }
 
-  // Configure timeago locale to Portuguese
   timeago.setLocaleMessages('pt_BR', timeago.PtBrMessages());
-
   runApp(const MyApp());
 }
 
@@ -40,7 +45,7 @@ class MyApp extends StatelessWidget {
       create: (_) => ThemeProvider(),
       builder: (context, _) {
         final themeProvider = Provider.of<ThemeProvider>(context);
-        
+
         return MaterialApp(
           title: 'AlanoCryptoFX',
           debugShowCheckedModeBanner: false,

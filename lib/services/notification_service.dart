@@ -45,6 +45,15 @@ class NotificationService {
     }
   }
 
+  // Deletar uma notificação
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _notificationsCollection.doc(notificationId).delete();
+    } catch (e) {
+      print('Erro ao deletar notificação: $e');
+    }
+  }
+
   // Criar uma nova notificação
   Future<void> createNotification({
     required String userId,

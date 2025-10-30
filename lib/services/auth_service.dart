@@ -27,7 +27,7 @@ class AuthService {
     _googleSignIn = GoogleSignIn(
       clientId: kIsWeb
         ? '755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com'
-        : null,
+        : '508290889017-p224pp9boj1t35ril17kv3oh71nof0di.apps.googleusercontent.com',
     );
   }
 

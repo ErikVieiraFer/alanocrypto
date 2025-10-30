@@ -1,56 +1,40 @@
 {
   "project_info": {
-    "project_number": "755553491761",
-    "project_id": "alanocryptofx",
-    "storage_bucket": "alanocryptofx.firebasestorage.app"
+    "project_number": "508290889017",
+    "project_id": "alanocryptofx-v2",
+    "storage_bucket": "alanocryptofx-v2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:755553491761:android:cd8bb7af12f9a2a32aee10",
+        "mobilesdk_app_id": "1:508290889017:android:a7714f13c511351708e4e8",
         "android_client_info": {
-          "package_name": "com.example.alanoapp"
+          "package_name": "com.example.alanoapp.test"
         }
       },
       "oauth_client": [
         {
-          "client_id": "755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.alanoapp",
-            "certificate_hash": "151996a4d3649c2687e77c86d566b9caddc37ad3"
-          }
-        },
-        {
-          "client_id": "755553491761-vn73p6opdl47k4ctn5dliq224716apgp.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.alanoapp",
-            "certificate_hash": "74e6fb98076fee2856ee40a084d83a3c779032af"
-          }
-        },
-        {
-          "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
+          "client_id": "508290889017-kcm5f3mmnnj8iejn2ro12agrjdjju9hj.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCMZQLna30owePevgG80YtYIyNmkdGPfWs"
+          "current_key": "AIzaSyADUwgaqCqZfwT80gyU2PSWHkxLFRmNrUk"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "755553491761-ocbq4epvju1mtdqtehn46m3p19d2drvk.apps.googleusercontent.com",
+              "client_id": "508290889017-kcm5f3mmnnj8iejn2ro12agrjdjju9hj.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "755553491761-o098bmbchv42higbviki62chc174ltmn.apps.googleusercontent.com",
+              "client_id": "508290889017-p224pp9boj1t35ril17kv3oh71nof0di.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.alanoapp"
+                "bundle_id": "com.example.alanoapp.test"
               }
             }
           ]

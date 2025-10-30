@@ -3,23 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>755553491761-o098bmbchv42higbviki62chc174ltmn.apps.googleusercontent.com</string>
+	<string>508290889017-p224pp9boj1t35ril17kv3oh71nof0di.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.755553491761-o098bmbchv42higbviki62chc174ltmn</string>
+	<string>com.googleusercontent.apps.508290889017-p224pp9boj1t35ril17kv3oh71nof0di</string>
 	<key>ANDROID_CLIENT_ID</key>
-	<string>755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com</string>
+	<string>508290889017-eqgq15v5vau30km4r5tifctj2t0otf4d.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyD3DHfhXAeHqcdx3ZgzClSn0DsmI9iC1Z4</string>
+	<string>AIzaSyB77ViHGuoWqVSsxkoyZcQVYUzPVPJqM4M</string>
 	<key>GCM_SENDER_ID</key>
-	<string>755553491761</string>
+	<string>508290889017</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.alanoapp</string>
+	<string>com.example.alanoapp.test</string>
 	<key>PROJECT_ID</key>
-	<string>alanocryptofx</string>
+	<string>alanocryptofx-v2</string>
 	<key>STORAGE_BUCKET</key>
-	<string>alanocryptofx.firebasestorage.app</string>
+	<string>alanocryptofx-v2.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:755553491761:ios:f54e44b42bf2efe52aee10</string>
+	<string>1:508290889017:ios:e05cba8593d742a008e4e8</string>
 </dict>
 </plist>

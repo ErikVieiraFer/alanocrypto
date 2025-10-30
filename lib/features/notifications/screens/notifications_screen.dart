@@ -120,49 +120,62 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               final notification = notifications[index];
               final isUnread = !notification.read;
 
-              return ListTile(
-                leading: Stack(
-                  children: [
-                    Icon(
-                      _getIconForType(notification.type),
-                      color: isUnread ? AppTheme.getPrimaryColor(context) : Colors.grey,
-                      size: 32,
-                    ),
-                  ],
+              return Dismissible(
+                key: Key(notification.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Colors.red,
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
-                title: Text(
-                  notification.title,
-                  style: TextStyle(
-                    fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(notification.content),
-                    const SizedBox(height: 4),
-                    Text(
-                      timeago.format(notification.createdAt.toDate(), locale: 'pt_BR'),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ],
-                ),
-                trailing: isUnread
-                    ? Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: AppTheme.getPrimaryColor(context),
-                          shape: BoxShape.circle,
-                        ),
-                      )
-                    : null,
-                onTap: () {
-                  if (isUnread) {
-                    _notificationService.markAsRead(notification.id);
-                  }
-                  _navigateToRelatedContent(notification.type, notification.relatedId);
+                onDismissed: (direction) {
+                  _notificationService.deleteNotification(notification.id);
                 },
+                child: ListTile(
+                  leading: Stack(
+                    children: [
+                      Icon(
+                        _getIconForType(notification.type),
+                        color: isUnread ? AppTheme.getPrimaryColor(context) : Colors.grey,
+                        size: 32,
+                      ),
+                    ],
+                  ),
+                  title: Text(
+                    notification.title,
+                    style: TextStyle(
+                      fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(notification.content),
+                      const SizedBox(height: 4),
+                      Text(
+                        timeago.format(notification.createdAt.toDate(), locale: 'pt_BR'),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                  trailing: isUnread
+                      ? Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppTheme.getPrimaryColor(context),
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                      : null,
+                  onTap: () {
+                    if (isUnread) {
+                      _notificationService.markAsRead(notification.id);
+                    }
+                    _navigateToRelatedContent(notification.type, notification.relatedId);
+                  },
+                ),
               );
             },
           );

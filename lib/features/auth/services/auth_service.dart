@@ -58,7 +58,7 @@ class AuthService {
         'displayName': user.displayName,
         'photoURL': user.photoURL,
         'lastLogin': FieldValue.serverTimestamp(),
-        'isApproved': false,
+        'isApproved': true, // TODO: Implementar painel admin
         'role': 'user',
       };
 
