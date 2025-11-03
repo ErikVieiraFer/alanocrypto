@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../models/message_model.dart';
+import '../../../models/notification_model.dart';
 import '../../../services/chat_service.dart';
+import '../../../services/notification_service.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/message_input.dart';
 import '../../profile/screens/profile_screen.dart';
@@ -16,6 +18,7 @@ class GroupChatScreen extends StatefulWidget {
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
   final ChatService _chatService = ChatService();
+  final NotificationService _notificationService = NotificationService();
   final ScrollController _scrollController = ScrollController();
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
@@ -37,15 +40,17 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
   }
 
-  Future<void> _sendMessage(String text, File? image) async {
+  Future<void> _sendMessage(String text, PickedImageFile? image) async {
     if (_currentUser == null) return;
 
     String? imageUrl;
 
     try {
-      if (image != null) {
+      if (image != null && image.hasData) {
         imageUrl = await _chatService.uploadMessageImage(image, _currentUser!.uid);
       }
+
+      final originalMessage = _replyToMessage;
 
       await _chatService.sendMessage(
         text: text,
@@ -53,10 +58,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         userName: _currentUser!.displayName ?? 'Usuário',
         userPhotoUrl: _currentUser!.photoURL,
         imageUrl: imageUrl,
-        replyToId: _replyToMessage?.id,
-        replyToText: _replyToMessage?.text,
-        replyToUserName: _replyToMessage?.userName,
+        replyToId: originalMessage?.id,
+        replyToText: originalMessage?.text,
+        replyToUserName: originalMessage?.userName,
       );
+
+      // Criar notificação se for uma resposta para a mensagem de outra pessoa
+      if (originalMessage != null && originalMessage.userId != _currentUser!.uid) {
+        await _notificationService.createNotification(
+          userId: originalMessage.userId, // Notifica o autor da mensagem original
+          type: NotificationType.chatReply,
+          title: '${_currentUser!.displayName} respondeu à sua mensagem',
+          content: text,
+          relatedId: _currentUser!.uid, // ID do usuário que respondeu
+        );
+      }
 
       setState(() {
         _replyToMessage = null;
@@ -191,12 +207,22 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     if (_currentUser == null) return;
 
     try {
-      // Verificar se o usuário já reagiu com esse emoji
       final userReactions = message.reactions[emoji] ?? [];
       if (userReactions.contains(_currentUser!.uid)) {
         await _chatService.removeReaction(message.id, emoji, _currentUser!.uid);
       } else {
         await _chatService.addReaction(message.id, emoji, _currentUser!.uid);
+
+        // Criar notificação se não for a sua própria mensagem
+        if (message.userId != _currentUser!.uid) {
+          await _notificationService.createNotification(
+            userId: message.userId, // Notifica o autor da mensagem
+            type: NotificationType.chatReaction,
+            title: '${_currentUser!.displayName} reagiu à sua mensagem',
+            content: emoji,
+            relatedId: message.id, // ID da mensagem que recebeu a reação
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:provider/provider.dart';
@@ -13,27 +15,62 @@ import 'services/auth_service.dart';
 import 'middleware/auth_middleware.dart';
 import 'package:alanoapp/firebase_options.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.debug,
-      appleProvider: AppleProvider.debug,
-    );
-  } catch (e) {
-    if (e.toString().contains('duplicate-app')) {
-      // Firebase already initialized
-    } else {
-      rethrow;
+void main() {
+  // Global error handler to suppress known FlutterFire web interop error
+  FlutterError.onError = (FlutterErrorDetails details) {
+    final error = details.exception.toString();
+    if (error.contains('JavaScriptObject') ||
+        error.contains('_testException') ||
+        error.contains('ArgumentError')) {
+      // Suppress known FlutterFire web interop error
+      debugPrint('Suprimindo erro conhecido do FlutterFire: ${details.exception}');
+      return;
     }
-  }
+    FlutterError.presentError(details);
+  };
 
-  timeago.setLocaleMessages('pt_BR', timeago.PtBrMessages());
-  runApp(const MyApp());
+  // Catch errors in async code - EVERYTHING must be inside runZonedGuarded
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Initialize Firebase
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+
+        // Only activate App Check on non-web platforms to avoid conflicts
+        if (!kIsWeb) {
+          await FirebaseAppCheck.instance.activate(
+            androidProvider: AndroidProvider.debug,
+            appleProvider: AppleProvider.debug,
+          );
+        }
+      } catch (e) {
+        if (e.toString().contains('duplicate-app')) {
+          // Firebase already initialized
+        } else {
+          rethrow;
+        }
+      }
+
+      timeago.setLocaleMessages('pt_BR', timeago.PtBrMessages());
+
+      runApp(const MyApp());
+    },
+    (error, stack) {
+      // Catch uncaught async errors
+      if (error.toString().contains('JavaScriptObject') ||
+          error.toString().contains('_testException') ||
+          error.toString().contains('ArgumentError')) {
+        debugPrint('Suprimindo erro assíncrono conhecido do FlutterFire: $error');
+        return;
+      }
+      debugPrint('Erro não tratado: $error');
+      debugPrint('Stack trace: $stack');
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/message_model.dart';
+import '../features/home/widgets/message_input.dart' show PickedImageFile;
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -43,15 +46,28 @@ class ChatService {
     }
   }
 
-  // Upload de imagem
-  Future<String> uploadMessageImage(File imageFile, String userId) async {
+  // Upload de imagem (suporta Web e Mobile)
+  Future<String> uploadMessageImage(PickedImageFile imageFile, String userId) async {
     try {
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}_$userId.jpg';
       final Reference ref = _storage.ref().child('chat_images').child(fileName);
 
-      final UploadTask uploadTask = ref.putFile(imageFile);
-      final TaskSnapshot snapshot = await uploadTask;
+      UploadTask uploadTask;
 
+      if (kIsWeb && imageFile.bytes != null) {
+        // For web: use putData with bytes
+        uploadTask = ref.putData(
+          imageFile.bytes!,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      } else if (imageFile.file != null) {
+        // For mobile: use putFile
+        uploadTask = ref.putFile(imageFile.file!);
+      } else {
+        throw Exception('Nenhuma imagem válida fornecida');
+      }
+
+      final TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
       throw Exception('Erro ao fazer upload da imagem: $e');

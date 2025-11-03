@@ -1,9 +1,22 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 
+// Wrapper class to handle images on both mobile and web
+class PickedImageFile {
+  final File? file;  // For mobile
+  final Uint8List? bytes;  // For web
+  final String? name;
+
+  PickedImageFile({this.file, this.bytes, this.name});
+
+  bool get hasData => file != null || bytes != null;
+}
+
 class MessageInput extends StatefulWidget {
-  final Function(String text, File? image) onSend;
+  final Function(String text, PickedImageFile? image) onSend;
   final String? replyToUserName;
   final String? replyToText;
   final VoidCallback? onCancelReply;
@@ -23,7 +36,7 @@ class MessageInput extends StatefulWidget {
 class _MessageInputState extends State<MessageInput> {
   final TextEditingController _controller = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  File? _selectedImage;
+  PickedImageFile? _selectedImage;
   bool _isSending = false;
 
   @override
@@ -42,9 +55,24 @@ class _MessageInputState extends State<MessageInput> {
       );
 
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
+        if (kIsWeb) {
+          // For web: read as bytes
+          final bytes = await image.readAsBytes();
+          setState(() {
+            _selectedImage = PickedImageFile(
+              bytes: bytes,
+              name: image.name,
+            );
+          });
+        } else {
+          // For mobile: use File
+          setState(() {
+            _selectedImage = PickedImageFile(
+              file: File(image.path),
+              name: image.name,
+            );
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -213,13 +241,28 @@ class _MessageInputState extends State<MessageInput> {
   }
 
   Widget _buildImagePreview() {
+    if (_selectedImage == null || !_selectedImage!.hasData) {
+      return const SizedBox.shrink();
+    }
+
+    ImageProvider imageProvider;
+    if (kIsWeb && _selectedImage!.bytes != null) {
+      // For web: use MemoryImage with bytes
+      imageProvider = MemoryImage(_selectedImage!.bytes!);
+    } else if (_selectedImage!.file != null) {
+      // For mobile: use FileImage
+      imageProvider = FileImage(_selectedImage!.file!);
+    } else {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: const EdgeInsets.all(8.0),
       height: 120,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         image: DecorationImage(
-          image: FileImage(_selectedImage!),
+          image: imageProvider,
           fit: BoxFit.cover,
         ),
       ),

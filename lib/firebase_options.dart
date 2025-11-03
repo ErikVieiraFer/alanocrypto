@@ -41,52 +41,53 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB9NHDKR4SWwNVqFUTgKe_KfSGXjRYuXi0',
-    appId: '1:755553491761:web:7a288eebd6ff9d092aee10',
-    messagingSenderId: '755553491761',
-    projectId: 'alanocryptofx',
-    authDomain: 'alanocryptofx.firebaseapp.com',
-    storageBucket: 'alanocryptofx.firebasestorage.app',
-    measurementId: 'G-VX1NQTLBZ4',
+    apiKey: 'AIzaSyD25JZdaoYY2TUIKr3Ey3ylS9r-xrQ0d8U',
+    appId: '1:508290889017:web:4e7b52875cfee66008e4e8',
+    messagingSenderId: '508290889017',
+    projectId: 'alanocryptofx-v2',
+    authDomain: 'alanocryptofx-v2.firebaseapp.com',
+    storageBucket: 'alanocryptofx-v2.firebasestorage.app',
+    measurementId: 'G-V1F7QG4K4C',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCMZQLna30owePevgG80YtYIyNmkdGPfWs',
-    appId: '1:755553491761:android:cd8bb7af12f9a2a32aee10',
-    messagingSenderId: '755553491761',
-    projectId: 'alanocryptofx',
-    storageBucket: 'alanocryptofx.firebasestorage.app',
+    apiKey: 'AIzaSyADUwgaqCqZfwT80gyU2PSWHkxLFRmNrUk',
+    appId: '1:508290889017:android:b88b93b1c5ff331908e4e8',
+    messagingSenderId: '508290889017',
+    projectId: 'alanocryptofx-v2',
+    storageBucket: 'alanocryptofx-v2.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD3DHfhXAeHqcdx3ZgzClSn0DsmI9iC1Z4',
-    appId: '1:755553491761:ios:f54e44b42bf2efe52aee10',
-    messagingSenderId: '755553491761',
-    projectId: 'alanocryptofx',
-    storageBucket: 'alanocryptofx.firebasestorage.app',
-    androidClientId: '755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com',
-    iosClientId: '755553491761-o098bmbchv42higbviki62chc174ltmn.apps.googleusercontent.com',
-    iosBundleId: 'com.example.alanoapp',
+    apiKey: 'AIzaSyB77ViHGuoWqVSsxkoyZcQVYUzPVPJqM4M',
+    appId: '1:508290889017:ios:574367f80ecf650b08e4e8',
+    messagingSenderId: '508290889017',
+    projectId: 'alanocryptofx-v2',
+    storageBucket: 'alanocryptofx-v2.firebasestorage.app',
+    androidClientId: '508290889017-vut39rglmo28a8e6p3jg550srr8206i1.apps.googleusercontent.com',
+    iosClientId: '508290889017-p224pp9boj1t35ril17kv3oh71nof0di.apps.googleusercontent.com',
+    iosBundleId: 'com.example.alanoapp.test',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyD3DHfhXAeHqcdx3ZgzClSn0DsmI9iC1Z4',
-    appId: '1:755553491761:ios:f54e44b42bf2efe52aee10',
-    messagingSenderId: '755553491761',
-    projectId: 'alanocryptofx',
-    storageBucket: 'alanocryptofx.firebasestorage.app',
-    androidClientId: '755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com',
-    iosClientId: '755553491761-o098bmbchv42higbviki62chc174ltmn.apps.googleusercontent.com',
+    apiKey: 'AIzaSyB77ViHGuoWqVSsxkoyZcQVYUzPVPJqM4M',
+    appId: '1:508290889017:ios:bc0e63ab76f2a8a808e4e8',
+    messagingSenderId: '508290889017',
+    projectId: 'alanocryptofx-v2',
+    storageBucket: 'alanocryptofx-v2.firebasestorage.app',
+    androidClientId: '508290889017-vut39rglmo28a8e6p3jg550srr8206i1.apps.googleusercontent.com',
+    iosClientId: '508290889017-fpon32gltjocen19s22s5ko9d2cuidvs.apps.googleusercontent.com',
     iosBundleId: 'com.example.alanoapp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyB9NHDKR4SWwNVqFUTgKe_KfSGXjRYuXi0',
-    appId: '1:755553491761:web:76bf20593e2eb10f2aee10',
-    messagingSenderId: '755553491761',
-    projectId: 'alanocryptofx',
-    authDomain: 'alanocryptofx.firebaseapp.com',
-    storageBucket: 'alanocryptofx.firebasestorage.app',
-    measurementId: 'G-ZV0C21XD3M',
+    apiKey: 'AIzaSyD25JZdaoYY2TUIKr3Ey3ylS9r-xrQ0d8U',
+    appId: '1:508290889017:web:96549fafe329238408e4e8',
+    messagingSenderId: '508290889017',
+    projectId: 'alanocryptofx-v2',
+    authDomain: 'alanocryptofx-v2.firebaseapp.com',
+    storageBucket: 'alanocryptofx-v2.firebasestorage.app',
+    measurementId: 'G-KXSTC0ZJ0D',
   );
+
 }

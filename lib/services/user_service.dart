@@ -102,25 +102,16 @@ class UserService {
 
   Future<void> createOrUpdateUser(User user) async {
     try {
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-
-      if (!userDoc.exists) {
-        final newUser = UserModel(
-          uid: user.uid,
-          email: user.email ?? '',
-          displayName: user.displayName ?? 'Usuário',
-          photoURL: user.photoURL ?? '',
-          bio: '',
-          createdAt: DateTime.now(),
-          lastLogin: DateTime.now(),
-        );
-
-        await _firestore.collection('users').doc(user.uid).set(newUser.toFirestore());
-      } else {
-        await _firestore.collection('users').doc(user.uid).update({
-          'lastLogin': Timestamp.fromDate(DateTime.now()),
-        });
-      }
+      // Use SetOptions(merge: true) to create or update without reading first
+      // This prevents race conditions and the "Future already completed" error
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'email': user.email ?? '',
+        'displayName': user.displayName ?? 'Usuário',
+        'photoURL': user.photoURL ?? '',
+        'lastLogin': Timestamp.fromDate(DateTime.now()),
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e) {
       print('Erro ao criar/atualizar usuário: $e');
     }

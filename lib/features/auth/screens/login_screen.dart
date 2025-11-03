@@ -1,4 +1,3 @@
-import 'package:alanoapp/features/dashboard/screen/dashboard_screen.dart';
 import 'package:alanoapp/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:alanoapp/theme/app_theme.dart';
@@ -18,34 +17,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkRedirectResult();
   }
 
-  Future<void> _checkRedirectResult() async {
-    setState(() {
-      _isLoading = true;
-    });
 
-    try {
-      final user = await _authService.handleRedirectResult();
-
-      if (user != null && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorDialog('Erro ao processar login', e.toString());
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
 
   Future<void> _loginWithGoogle() async {
     setState(() {
@@ -53,20 +27,22 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await _authService.signInWithGoogle();
-
-      if (user != null && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-      }
-      // Se user for null, pode ser redirect do Safari (não precisa mostrar erro)
+      await _authService.signInWithGoogle();
+      // Don't navigate manually - let AuthWrapper handle it automatically
+      // when authStateChanges fires
+      // If user is null, it might be redirect (Safari) - no error needed
     } catch (e) {
       if (mounted) {
-        final errorMessage = e.toString();
+        String errorMessage = e.toString();
+
+        // Clean up error message
+        if (errorMessage.startsWith('AuthException:')) {
+          errorMessage = errorMessage.replaceFirst('AuthException:', '').trim();
+        }
 
         // Não mostrar erro se usuário cancelou
-        if (!errorMessage.contains('cancelado pelo usuário')) {
+        if (!errorMessage.contains('cancelado pelo usuário') &&
+            !errorMessage.contains('user-cancelled')) {
           _showErrorDialog('Erro ao fazer login', errorMessage);
         }
       }

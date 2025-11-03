@@ -203,13 +203,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           if (userSnapshot.hasError) {
-            return Center(child: Text('Erro: ${userSnapshot.error}'));
+            return Scaffold(
+              appBar: AppBar(title: const Text('Erro')),
+              body: Center(child: Text('Erro ao carregar perfil: ${userSnapshot.error}')),
+            );
           }
 
           final user = userSnapshot.data;
 
           if (user == null) {
-            return const Center(child: Text('Usuário não encontrado'));
+            return Scaffold(
+              appBar: AppBar(title: const Text('Não Encontrado')),
+              body: const Center(child: Text('Este usuário não foi encontrado.')),
+            );
           }
 
           final isDark = Theme.of(context).brightness == Brightness.dark;

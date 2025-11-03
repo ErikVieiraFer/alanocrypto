@@ -4,8 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'user_service.dart';
 
-// Conditional import for web-specific functionality
-import 'package:universal_html/html.dart' as html;
+
 
 class AuthException implements Exception {
   final String code;
@@ -18,22 +17,35 @@ class AuthException implements Exception {
 }
 
 class AuthService {
+  // Singleton pattern
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late final GoogleSignIn _googleSignIn;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final UserService _userService = UserService();
 
-  AuthService() {
+  // Flag to prevent multiple simultaneous login attempts
+  bool _isSigningIn = false;
+
+  AuthService._internal() {
     _googleSignIn = GoogleSignIn(
-      clientId: kIsWeb
-        ? '755553491761-104atot6h03fbut33jq6r2fasgnf32sb.apps.googleusercontent.com'
-        : '508290889017-p224pp9boj1t35ril17kv3oh71nof0di.apps.googleusercontent.com',
+      scopes: ['email', 'profile'],
     );
   }
 
   User? get currentUser => _auth.currentUser;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges => _auth.authStateChanges().handleError((error) {
+    // Suppress known FlutterFire web interop error
+    if (error.toString().contains('JavaScriptObject') ||
+        error.toString().contains('_testException')) {
+      print('Suprimindo erro conhecido do FlutterFire: $error');
+      return;
+    }
+    throw error;
+  });
 
   String _getErrorMessage(dynamic error) {
     if (error is FirebaseAuthException) {
@@ -60,53 +72,42 @@ class AuthService {
         case 'account-exists-with-different-credential':
           return 'Conta já existe com outro método de login';
         default:
-          if (error.message?.contains('missing initial state') ?? false) {
-            return 'Erro no Safari. Tente: 1) Ativar cookies, 2) Desativar "Prevent Cross-Site Tracking", ou 3) Use Chrome/Firefox';
-          }
           return 'Erro ao fazer login: ${error.message ?? error.code}';
       }
-    }
-
-    final errorString = error.toString();
-    if (errorString.contains('missing initial state')) {
-      return 'Erro no Safari. Tente: 1) Ativar cookies, 2) Desativar "Prevent Cross-Site Tracking", ou 3) Use Chrome/Firefox';
     }
 
     return 'Erro inesperado: $error';
   }
 
   Future<User?> signInWithGoogle() async {
+    // Prevent multiple simultaneous login attempts
+    if (_isSigningIn) {
+      print('Login já em andamento, ignorando nova tentativa');
+      return null;
+    }
+
+    _isSigningIn = true;
+
     try {
       if (kIsWeb) {
-        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        UserCredential userCredential;
+
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
         googleProvider.setCustomParameters({'prompt': 'select_account'});
 
-        // Tentar popup primeiro (funciona melhor no Safari moderno)
-        try {
-          final UserCredential userCredential = await _auth.signInWithPopup(googleProvider);
+        userCredential = await _auth.signInWithPopup(googleProvider);
 
-          if (userCredential.user != null) {
-            await _userService.createOrUpdateUser(userCredential.user!);
-          }
+        final User? user = userCredential.user;
 
-          return userCredential.user;
-        } catch (popupError) {
-          // Se popup falhar, detectar navegador e decidir estratégia
-          final userAgent = html.window.navigator.userAgent;
-          final isSafari = userAgent.contains('Safari') && !userAgent.contains('Chrome');
-          final isIOS = userAgent.contains('iPhone') || userAgent.contains('iPad') || userAgent.contains('iPod');
-
-          // Se for Safari/iOS e popup falhou, tentar redirect
-          if (isSafari || isIOS) {
-            // Salvar flag indicando que estamos fazendo redirect
-            html.window.sessionStorage['auth_redirect_pending'] = 'true';
-            await _auth.signInWithRedirect(googleProvider);
-            return null; // O resultado será tratado pelo handleRedirectResult
-          } else {
-            // Se não for Safari/iOS, popup deveria ter funcionado
-            throw popupError;
-          }
+        if (user != null) {
+          await _userService.createOrUpdateUser(user);
         }
+
+        return user;
+
       } else {
         // Mobile (Android/iOS)
         await _googleSignIn.signOut();
@@ -136,42 +137,11 @@ class AuthService {
       final errorMessage = _getErrorMessage(e);
       print('Erro no login com Google: $errorMessage');
       throw AuthException('login-failed', errorMessage);
+    } finally {
+      _isSigningIn = false;
     }
   }
 
-  /// Método para processar o resultado do redirect (Safari/iOS)
-  Future<User?> handleRedirectResult() async {
-    try {
-      if (kIsWeb) {
-        // Verificar se há redirect pendente
-        final redirectPending = html.window.sessionStorage['auth_redirect_pending'];
-
-        final UserCredential? userCredential = await _auth.getRedirectResult();
-
-        if (userCredential != null && userCredential.user != null) {
-          // Limpar flag de redirect pendente
-          html.window.sessionStorage.remove('auth_redirect_pending');
-
-          await _userService.createOrUpdateUser(userCredential.user!);
-          return userCredential.user;
-        }
-
-        // Se não há credential mas havia redirect pendente, algo deu errado
-        if (redirectPending == 'true') {
-          html.window.sessionStorage.remove('auth_redirect_pending');
-          throw AuthException(
-            'redirect-failed',
-            'Falha ao processar login. Tente novamente',
-          );
-        }
-      }
-      return null;
-    } catch (e) {
-      final errorMessage = _getErrorMessage(e);
-      print('Erro ao processar redirect: $errorMessage');
-      throw AuthException('redirect-error', errorMessage);
-    }
-  }
 
   Future<void> signOut() async {
     try {

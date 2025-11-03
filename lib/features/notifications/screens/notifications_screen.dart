@@ -7,6 +7,7 @@ import '../../../theme/app_theme.dart';
 import '../../home/screens/comments_screen.dart';
 import '../../signals/screens/signals_screen.dart';
 import '../../alano_posts/screens/alano_posts_screen.dart';
+import '../../home/screens/group_chat_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -25,6 +26,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Icons.chat_bubble_outline;
       case NotificationType.like:
         return Icons.favorite_border;
+      case NotificationType.chatReply:
+        return Icons.reply;
+      case NotificationType.chatReaction:
+        return Icons.emoji_emotions_outlined;
       case NotificationType.signal:
         return Icons.show_chart;
       case NotificationType.post:
@@ -61,6 +66,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => const AlanoPostsScreen(),
+          ),
+        );
+        break;
+      case NotificationType.chatReply:
+      case NotificationType.chatReaction:
+        // Navega para a tela de chat em grupo
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const GroupChatScreen(),
           ),
         );
         break;
