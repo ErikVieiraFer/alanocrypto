@@ -1,21 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/user_service.dart';
 
 class AuthMiddleware {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final UserService _userService = UserService();
 
-  Stream<bool> checkUserApproval(String uid) {
-    // TODO: Implementar painel admin
-    return Stream.value(true);
-    // return _firestore
-    //     .collection('users')
-    //     .doc(uid)
-    //     .snapshots()
-    //     .map((doc) {
-    //   if (!doc.exists) {
-    //     return false;
-    //   }
-    //   final data = doc.data();
-    //   return data?['isApproved'] ?? false;
-    // });
+  Future<bool> checkAuth(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+      return false;
+    }
+
+    final isApproved = await _userService.isUserApproved(user.uid);
+
+    if (!isApproved) {
+      Navigator.pushReplacementNamed(context, '/pending-approval');
+      return false;
+    }
+
+    return true;
   }
 }

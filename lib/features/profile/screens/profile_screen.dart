@@ -11,7 +11,7 @@ import '../../../theme/theme_provider.dart';
 import '../../../theme/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String? userId; // Opcional: para ver perfil de outros usuários
+  final String? userId;
 
   const ProfileScreen({super.key, this.userId});
 
@@ -302,22 +302,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.white70,
                             ),
                           ),
-                          if (user.bio.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 32),
-                              child: Text(
-                                user.bio,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -340,10 +324,123 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ],
               ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.getSecondaryBackgroundColor(context),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.getTextColor(context).withValues(alpha: 0.1),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Biografia',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.getTextColor(context),
+                              ),
+                            ),
+                            if (isOwnProfile)
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () => _showEditBioDialog(context, user),
+                                color: AppTheme.getPrimaryColor(context),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          user.bio.isEmpty
+                              ? 'Conte um pouco sobre você...'
+                              : user.bio,
+                          style: TextStyle(
+                            fontSize: 16,
+                            height: 1.6,
+                            color: user.bio.isEmpty
+                                ? AppTheme.getTextColor(context).withValues(alpha: 0.4)
+                                : AppTheme.getTextColor(context).withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           );
         },
       )
+    );
+  }
+
+  void _showEditBioDialog(BuildContext context, UserModel user) {
+    final bioController = TextEditingController(text: user.bio);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.getSecondaryBackgroundColor(context),
+        title: Text(
+          'Editar Biografia',
+          style: TextStyle(color: AppTheme.getTextColor(context)),
+        ),
+        content: TextField(
+          controller: bioController,
+          maxLines: 5,
+          maxLength: 500,
+          decoration: InputDecoration(
+            hintText: 'Conte um pouco sobre você...',
+            hintStyle: TextStyle(
+              color: AppTheme.getTextColor(context).withValues(alpha: 0.4),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          style: TextStyle(color: AppTheme.getTextColor(context)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: AppTheme.getTextColor(context).withValues(alpha: 0.6)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _userService.updateUser(
+                userId: user.uid,
+                data: {'bio': bioController.text},
+              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Biografia atualizada!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.greenPrimary,
+            ),
+            child: const Text('Salvar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 }

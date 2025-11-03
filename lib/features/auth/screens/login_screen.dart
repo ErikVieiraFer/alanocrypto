@@ -1,248 +1,269 @@
-import 'package:alanoapp/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:alanoapp/theme/app_theme.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/user_service.dart';
+import '../../../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = AuthService();
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _authService = AuthService();
+  final _userService = UserService();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
-  void initState() {
-    super.initState();
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
+  Future<void> _loginWithEmail() async {
+    if (!_formKey.currentState!.validate()) return;
 
-
-  Future<void> _loginWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      await _authService.signInWithGoogle();
-      // Don't navigate manually - let AuthWrapper handle it automatically
-      // when authStateChanges fires
-      // If user is null, it might be redirect (Safari) - no error needed
-    } catch (e) {
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (userCredential.user != null) {
+        final isApproved = await _userService.isUserApproved(userCredential.user!.uid);
+
+        if (mounted) {
+          if (isApproved) {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          } else {
+            Navigator.pushReplacementNamed(context, '/pending-approval');
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Erro ao fazer login';
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        message = 'Email ou senha incorretos';
+      } else if (e.code == 'invalid-email') {
+        message = 'Email inválido';
+      } else if (e.code == 'user-disabled') {
+        message = 'Usuário desativado';
+      }
+
       if (mounted) {
-        String errorMessage = e.toString();
-
-        // Clean up error message
-        if (errorMessage.startsWith('AuthException:')) {
-          errorMessage = errorMessage.replaceFirst('AuthException:', '').trim();
-        }
-
-        // Não mostrar erro se usuário cancelou
-        if (!errorMessage.contains('cancelado pelo usuário') &&
-            !errorMessage.contains('user-cancelled')) {
-          _showErrorDialog('Erro ao fazer login', errorMessage);
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showErrorDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.getSecondaryBackgroundColor(context),
-        title: Row(
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 28,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: AppTheme.getTextColor(context),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          message,
-          style: TextStyle(
-            color: AppTheme.getTextColor(context),
-            fontSize: 14,
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.signInWithGoogle();
+
+      if (user != null) {
+        final isApproved = await _userService.isUserApproved(user.uid);
+
+        if (mounted) {
+          if (isApproved) {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          } else {
+            Navigator.pushReplacementNamed(context, '/pending-approval');
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao fazer login: $e'),
+            backgroundColor: Colors.red,
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: TextStyle(
-                color: AppTheme.getPrimaryColor(context),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppTheme.getTextColor(context);
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
-    final textColor60 = AppTheme.getTextColor60(context);
-    final primaryColor20 = AppTheme.getPrimaryColor20(context);
-
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Container(
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: secondaryBackground,
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Column(
-                  children: [
-                    Image.asset(
-                      'assets/logo.jpeg',
-                      height: 80,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: primaryColor20,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(
-                            Icons.currency_bitcoin,
-                            size: 48,
-                            color: primaryColor,
-                          ),
-                        );
-                      },
+      backgroundColor: AppTheme.getBackgroundColor(context),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppTheme.getTextColor(context)),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Entrar',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getTextColor(context),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'AC',
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Acesse sua conta',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.getTextColor(context).withValues(alpha: 0.6),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: const Icon(Icons.email),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Digite seu email';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Senha',
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Digite sua senha';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _loginWithEmail,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.greenPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Entrar',
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: AppTheme.getTextColor(context).withValues(alpha: 0.2))),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'OU',
                           style: TextStyle(
-                            color: AppTheme.greenSecondary,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
+                            color: AppTheme.getTextColor(context).withValues(alpha: 0.6),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'AlanoCryptoFX',
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                Text(
-                  'Entrar',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                      ),
+                      Expanded(child: Divider(color: AppTheme.getTextColor(context).withValues(alpha: 0.2))),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 24),
 
-                Text(
-                  'Faça login para acessar conteúdo exclusivo',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: textColor60,
-                    fontSize: 14,
-                  ),
-                ),
+                  const SizedBox(height: 16),
 
-                const SizedBox(height: 32),
-
-                if (_isLoading)
-                  CircularProgressIndicator(color: primaryColor)
-                else
                   OutlinedButton.icon(
-                    onPressed: _loginWithGoogle,
+                    onPressed: _isLoading ? null : _loginWithGoogle,
+                    icon: Icon(Icons.g_mobiledata, size: 32),
+                    label: const Text('Continuar com Google'),
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      side: BorderSide(color: primaryColor),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: AppTheme.getTextColor(context).withValues(alpha: 0.3)),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.g_mobiledata,
-                      color: primaryColor,
-                      size: 32,
-                    ),
-                    label: Text(
-                      'Entrar com Google',
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
-                IconButton(
-                  onPressed: () {},
-                  icon: const FaIcon(
-                    FontAwesomeIcons.youtube,
-                    color: Colors.red,
-                    size: 40,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Não tem conta? ',
+                        style: TextStyle(
+                          color: AppTheme.getTextColor(context).withValues(alpha: 0.6),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pushNamed(context, '/signup'),
+                        child: Text(
+                          'Cadastre-se',
+                          style: TextStyle(
+                            color: AppTheme.greenPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  'Seja membro do canal para acessar',
-                  style: TextStyle(
-                    color: textColor60,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -1,140 +1,136 @@
 import 'package:flutter/material.dart';
-import 'package:alanoapp/theme/app_theme.dart';
-import 'package:alanoapp/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../theme/app_theme.dart';
 
 class PendingApprovalScreen extends StatelessWidget {
-  const PendingApprovalScreen({super.key});
+  const PendingApprovalScreen({Key? key}) : super(key: key);
+
+  Future<void> _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.pushReplacementNamed(context, '/landing');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final textColor = AppTheme.getTextColor(context);
-    final backgroundColor = AppTheme.getBackgroundColor(context);
-    final secondaryBackground = AppTheme.getSecondaryBackgroundColor(context);
-    final primaryColor = AppTheme.getPrimaryColor(context);
-    final textColor60 = AppTheme.getTextColor60(context);
-    final primaryColor20 = AppTheme.getPrimaryColor20(context);
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Container(
+      backgroundColor: AppTheme.getBackgroundColor(context),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
             padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: secondaryBackground,
-              borderRadius: BorderRadius.circular(16.0),
-            ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Column(
-                  children: [
-                    Image.asset(
-                      'assets/logo.jpeg',
-                      height: 80,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: primaryColor20,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(
-                            Icons.currency_bitcoin,
-                            size: 48,
-                            color: primaryColor,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'AC',
-                          style: TextStyle(
-                            color: AppTheme.greenSecondary,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'AlanoCryptoFX',
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-
-                Icon(
-                  Icons.pending_outlined,
-                  size: 80,
-                  color: primaryColor,
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getPrimaryColor(context).withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.hourglass_empty,
+                    size: 80,
+                    color: AppTheme.getPrimaryColor(context),
+                  ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 Text(
                   'Aguardando Aprovação',
                   style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
+                    color: AppTheme.getTextColor(context),
                   ),
+                  textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: 16),
 
                 Text(
-                  'Sua conta está aguardando aprovação do administrador.',
-                  textAlign: TextAlign.center,
+                  'Seu cadastro foi recebido com sucesso!',
                   style: TextStyle(
-                    color: textColor60,
                     fontSize: 16,
+                    color: AppTheme.getTextColor(context).withValues(alpha: 0.7),
                   ),
+                  textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: 8),
 
                 Text(
-                  'Você será notificado quando sua conta for aprovada.',
-                  textAlign: TextAlign.center,
+                  user?.email ?? '',
                   style: TextStyle(
-                    color: textColor60,
-                    fontSize: 14,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.getPrimaryColor(context),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 24),
+
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getSecondaryBackgroundColor(context),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.getPrimaryColor(context).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: AppTheme.getPrimaryColor(context),
+                        size: 32,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Sua conta está em análise',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.getTextColor(context),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Alano irá revisar seu cadastro em breve. Você receberá acesso assim que for aprovado.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.getTextColor(context).withValues(alpha: 0.6),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 32),
 
-                ElevatedButton(
-                  onPressed: () async {
-                    final authService = AuthService();
-                    await authService.signOut();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: primaryColor,
-                    foregroundColor: AppTheme.black,
+                OutlinedButton(
+                  onPressed: () => _logout(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    side: BorderSide(color: AppTheme.getPrimaryColor(context)),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Sair',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      color: AppTheme.getPrimaryColor(context),
                     ),
                   ),
                 ),

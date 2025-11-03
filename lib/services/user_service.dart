@@ -31,13 +31,19 @@ class UserService {
     String? displayName,
     String? bio,
     String? photoURL,
+    Map<String, dynamic>? data,
   }) async {
     try {
       final Map<String, dynamic> updates = {};
-      
+
       if (displayName != null) updates['displayName'] = displayName;
       if (bio != null) updates['bio'] = bio;
       if (photoURL != null) updates['photoURL'] = photoURL;
+
+      // Adiciona dados customizados se fornecidos
+      if (data != null) {
+        updates.addAll(data);
+      }
 
       if (updates.isNotEmpty) {
         await _firestore.collection('users').doc(userId).update(updates);
@@ -111,9 +117,37 @@ class UserService {
         'photoURL': user.photoURL ?? '',
         'lastLogin': Timestamp.fromDate(DateTime.now()),
         'createdAt': FieldValue.serverTimestamp(),
+        'approved': false,  // Adiciona campo de aprovação
       }, SetOptions(merge: true));
     } catch (e) {
       print('Erro ao criar/atualizar usuário: $e');
+    }
+  }
+
+  Future<void> createUser(User firebaseUser, {String? displayName}) async {
+    try {
+      await _firestore.collection('users').doc(firebaseUser.uid).set({
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': displayName ?? firebaseUser.displayName ?? '',
+        'photoURL': firebaseUser.photoURL ?? '',
+        'bio': '',
+        'approved': false,  // Novo usuário precisa aprovação
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastLogin': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('Erro ao criar usuário: $e');
+    }
+  }
+
+  Future<bool> isUserApproved(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      return doc.data()?['approved'] ?? false;
+    } catch (e) {
+      print('Erro ao verificar aprovação: $e');
+      return false;
     }
   }
 }

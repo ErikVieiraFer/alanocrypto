@@ -8,10 +8,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'theme/theme_provider.dart';
 import 'theme/app_theme.dart';
+import 'features/auth/screens/landing_screen.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/auth/screens/signup_screen.dart';
 import 'features/auth/screens/pending_approval_screen.dart';
 import 'features/dashboard/screen/dashboard_screen.dart';
 import 'services/auth_service.dart';
+import 'services/user_service.dart';
 import 'middleware/auth_middleware.dart';
 import 'package:alanoapp/firebase_options.dart';
 
@@ -91,7 +94,10 @@ class MyApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           home: const AuthWrapper(),
           routes: {
+            '/landing': (context) => const LandingScreen(),
             '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/pending-approval': (context) => const PendingApprovalScreen(),
             '/dashboard': (context) => const DashboardScreen(),
           },
         );
@@ -106,7 +112,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
-    final authMiddleware = AuthMiddleware();
+    final userService = UserService();
 
     return StreamBuilder<User?>(
       stream: authService.authStateChanges,
@@ -120,8 +126,8 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          return StreamBuilder<bool>(
-            stream: authMiddleware.checkUserApproval(snapshot.data!.uid),
+          return FutureBuilder<bool>(
+            future: userService.isUserApproved(snapshot.data!.uid),
             builder: (context, approvalSnapshot) {
               if (approvalSnapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
@@ -140,7 +146,7 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        return const LoginScreen();
+        return const LandingScreen();
       },
     );
   }
