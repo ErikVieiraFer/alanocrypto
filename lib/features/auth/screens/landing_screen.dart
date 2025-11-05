@@ -15,90 +15,159 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/alano-hero.jpg'),
-            fit: BoxFit.none,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withValues(alpha: 0.5),
-              BlendMode.darken,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/alano-hero.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment(0.0, -0.5),
             ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.8),
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.8),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  const Spacer(flex: 2),
                   Text(
-                    'AlanoCryptoFX',
+                    'TRADER PROFISSIONAL • YOUTUBER',
                     style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(
-                          blurRadius: 10,
-                          color: Colors.black.withValues(alpha: 0.5),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Text(
-                    'Sua comunidade de trading de criptomoedas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 14,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.9),
                       shadows: [
                         Shadow(
                           blurRadius: 8,
-                          color: Colors.black.withValues(alpha: 0.5),
+                          color: Colors.black.withOpacity(0.7),
                         ),
                       ],
                     ),
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 16),
 
+                  Text(
+                    'Hello My Name Is',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white.withOpacity(0.95),
+                      shadows: [
+                        Shadow(
+                          blurRadius: 8,
+                          color: Colors.black.withOpacity(0.7),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Nome dividido em duas partes (Alano verde, Crypto branco)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Alano',
+                        style: TextStyle(
+                          fontSize: 56,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.greenPrimary,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 12,
+                              color: Colors.black.withOpacity(0.8),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        'Crypto',
+                        style: TextStyle(
+                          fontSize: 56,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 12,
+                              color: Colors.black.withOpacity(0.8),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Ícones de redes sociais
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
                         onPressed: () => _launchURL('https://www.youtube.com/@AlanoCrypto'),
-                        icon: const Icon(Icons.play_circle_filled, size: 40),
-                        color: Colors.red,
+                        icon: Image.asset(
+                          'assets/icons/youtube.png',
+                          width: 40,
+                          height: 40,
+                        ),
+                        iconSize: 40,
+                        padding: EdgeInsets.zero,
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 24),
                       IconButton(
                         onPressed: () => _launchURL('https://www.instagram.com/alanocrypto/'),
-                        icon: const Icon(Icons.camera_alt, size: 40),
-                        color: Colors.pink,
+                        icon: Image.asset(
+                          'assets/icons/instagram.png',
+                          width: 40,
+                          height: 40,
+                        ),
+                        iconSize: 40,
+                        padding: EdgeInsets.zero,
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 48),
+                  // Spacer para empurrar os botões para baixo
+                  const Spacer(flex: 3),
 
+                  // Botão Cadastre-se (verde)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.pushNamed(context, '/signup'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.greenPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        elevation: 8,
+                        shadowColor: Colors.black.withOpacity(0.5),
                       ),
                       child: const Text(
-                        'Cadastrar',
+                        'Cadastre-se',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -110,16 +179,18 @@ class LandingScreen extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
+                  // Botão Entrar na Comunidade (transparente com borda)
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                       onPressed: () => Navigator.pushNamed(context, '/login'),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 56),
                         side: const BorderSide(color: Colors.white, width: 2),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        backgroundColor: Colors.transparent,
                       ),
                       child: const Text(
                         'Entrar na Comunidade',
@@ -131,11 +202,29 @@ class LandingScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 24),
+
+                  // Texto de rodapé
+                  Text(
+                    'Termos de Uso • Política de Privacidade',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.7),
+                      shadows: [
+                        Shadow(
+                          blurRadius: 6,
+                          color: Colors.black.withOpacity(0.6),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

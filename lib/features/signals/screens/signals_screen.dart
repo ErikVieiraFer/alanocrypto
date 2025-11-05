@@ -28,16 +28,95 @@ class _SignalsScreenState extends State<SignalsScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  void _copySignal(Signal signal) {
-    final text = _signalService.formatSignalText(signal);
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Sinal copiado!'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _copySignal(Signal signal) async {
+    try {
+      // Formatar targets
+      final targetsText = signal.targets
+          .asMap()
+          .entries
+          .map((e) => '🎯 Alvo ${e.key + 1}: \$${e.value.toStringAsFixed(2)}')
+          .join('\n');
+
+      // Determinar emoji por tipo
+      final typeEmoji = signal.type == SignalType.long ? '📈' : '📉';
+      final typeName = signal.type == SignalType.long ? 'LONG (Compra)' : 'SHORT (Venda)';
+
+      // Formatar confiança
+      String confidenceLevel;
+      String confidenceEmoji;
+      if (signal.confidence >= 80) {
+        confidenceLevel = 'Alta';
+        confidenceEmoji = '🔥';
+      } else if (signal.confidence >= 60) {
+        confidenceLevel = 'Média';
+        confidenceEmoji = '⚡';
+      } else {
+        confidenceLevel = 'Baixa';
+        confidenceEmoji = '⚠️';
+      }
+
+      // Montar mensagem formatada
+      final text = '''
+━━━━━━━━━━━━━━━━━━━━
+$typeEmoji SINAL DE TRADING
+━━━━━━━━━━━━━━━━━━━━
+
+💰 Moeda: ${signal.coin}
+📊 Tipo: $typeName
+
+💵 Entrada: \$${signal.entry.toStringAsFixed(2)}
+
+$targetsText
+
+🛑 Stop Loss: \$${signal.stopLoss.toStringAsFixed(2)}
+
+$confidenceEmoji Confiança: $confidenceLevel (${signal.confidence}%)
+
+━━━━━━━━━━━━━━━━━━━━
+⚠️ AVISO: Este não é um conselho financeiro.
+Opere por sua conta e risco.
+
+📲 AlanoCryptoFX
+━━━━━━━━━━━━━━━━━━━━
+      '''.trim();
+
+      await Clipboard.setData(ClipboardData(text: text));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Sinal copiado! Cole em qualquer lugar.',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green.shade700,
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Erro ao copiar sinal: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao copiar sinal'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   String _formatTimestamp(DateTime dateTime) {
