@@ -15,8 +15,19 @@ import 'features/auth/screens/pending_approval_screen.dart';
 import 'features/dashboard/screen/dashboard_screen.dart';
 import 'services/auth_service.dart';
 import 'services/user_service.dart';
+import 'services/fcm_service.dart';
 import 'middleware/auth_middleware.dart';
 import 'package:alanoapp/firebase_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Handler para notificações em background (deve estar no top-level)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('📬 Notificação FCM recebida em background');
+  debugPrint('Título: ${message.notification?.title}');
+  debugPrint('Corpo: ${message.notification?.body}');
+}
 
 void main() {
   // Global error handler to suppress known FlutterFire web interop error
@@ -49,6 +60,11 @@ void main() {
             androidProvider: AndroidProvider.debug,
             appleProvider: AppleProvider.debug,
           );
+        }
+
+        // Registrar handler para notificações em background (mobile)
+        if (!kIsWeb) {
+          FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         }
       } catch (e) {
         if (e.toString().contains('duplicate-app')) {
@@ -106,8 +122,27 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _fcmInitialized = false;
+
+  Future<void> _initializeFcm() async {
+    if (!_fcmInitialized) {
+      try {
+        await FcmService().initialize();
+        _fcmInitialized = true;
+        debugPrint('✅ FCM Service inicializado no AuthWrapper');
+      } catch (e) {
+        debugPrint('❌ Erro ao inicializar FCM Service: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +173,8 @@ class AuthWrapper extends StatelessWidget {
               }
 
               if (approvalSnapshot.hasData && approvalSnapshot.data == true) {
+                // Inicializar FCM após login e aprovação
+                _initializeFcm();
                 return const DashboardScreen();
               }
 

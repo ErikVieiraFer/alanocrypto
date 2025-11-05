@@ -108,19 +108,33 @@ class UserService {
 
   Future<void> createOrUpdateUser(User user) async {
     try {
-      // Use SetOptions(merge: true) to create or update without reading first
-      // This prevents race conditions and the "Future already completed" error
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'email': user.email ?? '',
-        'displayName': user.displayName ?? 'Usuário',
-        'photoURL': user.photoURL ?? '',
-        'lastLogin': Timestamp.fromDate(DateTime.now()),
-        'createdAt': FieldValue.serverTimestamp(),
-        'approved': false,  // Adiciona campo de aprovação
-      }, SetOptions(merge: true));
+      final userRef = _firestore.collection('users').doc(user.uid);
+      final userDoc = await userRef.get();
+
+      if (userDoc.exists) {
+        // Usuário já existe - atualizar APENAS lastLogin
+        await userRef.update({
+          'lastLogin': Timestamp.fromDate(DateTime.now()),
+        });
+        print('✅ Usuário existente atualizado: ${user.email}');
+      } else {
+        // Usuário novo - criar com approved: false
+        await userRef.set({
+          'uid': user.uid,
+          'email': user.email ?? '',
+          'displayName': user.displayName ?? 'Usuário',
+          'photoURL': user.photoURL ?? '',
+          'bio': '',
+          'approved': false,  // Apenas para usuários novos
+          'blocked': false,
+          'createdAt': Timestamp.fromDate(DateTime.now()),
+          'lastLogin': Timestamp.fromDate(DateTime.now()),
+        });
+        print('✅ Novo usuário criado: ${user.email} - Precisa aprovação');
+      }
     } catch (e) {
-      print('Erro ao criar/atualizar usuário: $e');
+      print('❌ Erro ao criar/atualizar usuário: $e');
+      rethrow;
     }
   }
 

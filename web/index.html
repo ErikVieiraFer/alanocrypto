@@ -37,5 +37,21 @@
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
+
+  <!-- Firebase Cloud Messaging Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('firebase-messaging-sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker FCM registrado:', registration);
+        })
+        .catch((error) => {
+          console.error('❌ Erro ao registrar Service Worker FCM:', error);
+        });
+    } else {
+      console.warn('⚠️ Service Workers não são suportados neste navegador');
+    }
+  </script>
 </body>
 </html>
