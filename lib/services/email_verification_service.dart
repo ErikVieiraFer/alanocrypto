@@ -28,8 +28,9 @@ class EmailVerificationService {
         'email': email,
         'code': code,
       });
-      debugPrint('Código verificado com sucesso');
-      return result.data['valid'] == true;
+      debugPrint('Código verificado com sucesso: ${result.data}');
+      // Cloud Function retorna { success: true, verified: true }
+      return result.data['verified'] == true || result.data['success'] == true;
     } catch (e) {
       debugPrint('Erro ao verificar código: $e');
       return false;
