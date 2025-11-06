@@ -11,6 +11,7 @@ import 'theme/app_theme.dart';
 import 'features/auth/screens/landing_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/signup_screen.dart';
+import 'features/auth/screens/email_verification_screen.dart';
 import 'features/auth/screens/pending_approval_screen.dart';
 import 'features/dashboard/screen/dashboard_screen.dart';
 import 'services/auth_service.dart';
@@ -113,6 +114,13 @@ class MyApp extends StatelessWidget {
             '/landing': (context) => const LandingScreen(),
             '/login': (context) => const LoginScreen(),
             '/signup': (context) => const SignupScreen(),
+            '/email-verification': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map;
+              return EmailVerificationScreen(
+                email: args['email'],
+                displayName: args['displayName'],
+              );
+            },
             '/pending-approval': (context) => const PendingApprovalScreen(),
             '/dashboard': (context) => const DashboardScreen(),
           },

@@ -51,25 +51,34 @@ class AuthService {
   Future<void> _saveUserData(User user) async {
     try {
       final userDoc = _firestore.collection('users').doc(user.uid);
-      
-      final userData = {
-        'uid': user.uid,
-        'email': user.email,
-        'displayName': user.displayName,
-        'photoURL': user.photoURL,
-        'lastLogin': FieldValue.serverTimestamp(),
-        'isApproved': true, // TODO: Implementar painel admin
-        'role': 'user',
-      };
-
       final docSnapshot = await userDoc.get();
-      if (!docSnapshot.exists) {
-        userData['createdAt'] = FieldValue.serverTimestamp();
-      }
 
-      await userDoc.set(userData, SetOptions(merge: true));
+      if (!docSnapshot.exists) {
+        // NOVO USUÁRIO - criar com approved: false
+        final userData = {
+          'uid': user.uid,
+          'email': user.email,
+          'displayName': user.displayName,
+          'photoURL': user.photoURL,
+          'bio': '',
+          'approved': false,  // Novo usuário precisa aprovação
+          'blocked': false,
+          'emailVerified': false,
+          'role': 'user',
+          'createdAt': FieldValue.serverTimestamp(),
+          'lastLogin': FieldValue.serverTimestamp(),
+        };
+        await userDoc.set(userData);
+        print('✅ Novo usuário criado: ${user.email} - Precisa aprovação');
+      } else {
+        // USUÁRIO EXISTENTE - atualizar APENAS lastLogin (não mexer em approved)
+        await userDoc.update({
+          'lastLogin': FieldValue.serverTimestamp(),
+        });
+        print('✅ Usuário existente atualizado: ${user.email}');
+      }
     } catch (e) {
-      print('Erro ao salvar dados do usuário: $e');
+      print('❌ Erro ao salvar dados do usuário: $e');
     }
   }
 

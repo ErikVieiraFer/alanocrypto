@@ -150,7 +150,7 @@ class LandingScreen extends StatelessWidget {
                   ),
 
                   // Spacer para empurrar os botões para baixo
-                  const Spacer(flex: 3),
+                  const Spacer(flex: 1),
 
                   // Botão Cadastre-se (verde)
                   SizedBox(

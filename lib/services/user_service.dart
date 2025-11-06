@@ -147,6 +147,7 @@ class UserService {
         'photoURL': firebaseUser.photoURL ?? '',
         'bio': '',
         'approved': false,  // Novo usuário precisa aprovação
+        'emailVerified': false,
         'createdAt': FieldValue.serverTimestamp(),
         'lastLogin': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));

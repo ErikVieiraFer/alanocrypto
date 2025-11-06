@@ -52,7 +52,14 @@ class _SignupScreenState extends State<SignupScreen> {
         );
 
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/pending-approval');
+          Navigator.pushReplacementNamed(
+            context,
+            '/email-verification',
+            arguments: {
+              'email': _emailController.text.trim(),
+              'displayName': _nameController.text.trim(),
+            },
+          );
         }
       }
     } on FirebaseAuthException catch (e) {
