@@ -10,11 +10,8 @@ class FcmService {
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // IMPORTANTE: Substituir pela sua VAPID key do Firebase Console
-  // Acessar: https://console.firebase.google.com/project/alanocryptofx-v2/settings/cloudmessaging
-  // Na seção "Web configuration" -> "Generate key pair" -> Copiar a VAPID key
-  static const String _vapidKey = 'COLE_SUA_VAPID_KEY_AQUI';
+  static const String _vapidKey =
+      'BATytYh7j6wG1t8FJ9cus4TxgCClYp_CV9hKdp9zHANa3DvqZWFbwWTZqnQ98GevzIVK2_qQiDIWVGfr8G4IHO0';
 
   Future<void> initialize() async {
     try {
@@ -29,7 +26,8 @@ class FcmService {
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         debugPrint('✅ Permissão de notificação concedida');
         await _getAndSaveToken();
-      } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.provisional) {
         debugPrint('⚠️ Permissão provisória concedida');
         await _getAndSaveToken();
       } else {
@@ -47,7 +45,9 @@ class FcmService {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        debugPrint('⚠️ Usuário não autenticado, não é possível obter token FCM');
+        debugPrint(
+          '⚠️ Usuário não autenticado, não é possível obter token FCM',
+        );
         return;
       }
 
@@ -56,7 +56,9 @@ class FcmService {
       if (kIsWeb) {
         // Web precisa da VAPID key
         if (_vapidKey == 'COLE_SUA_VAPID_KEY_AQUI') {
-          debugPrint('⚠️ VAPID key não configurada! Configure em fcm_service.dart');
+          debugPrint(
+            '⚠️ VAPID key não configurada! Configure em fcm_service.dart',
+          );
           return;
         }
         token = await _messaging.getToken(vapidKey: _vapidKey);
