@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/user_model.dart';
 
 class UserService {
@@ -56,14 +58,34 @@ class UserService {
     }
   }
 
-  Future<String?> uploadProfileImage(File imageFile, String userId) async {
+  Future<String?> uploadProfileImage({
+    File? imageFile,
+    Uint8List? imageBytes,
+    required String userId,
+  }) async {
     try {
       final String fileName = 'profile_$userId.jpg';
       final Reference ref = _storage.ref().child('profiles/$userId/$fileName');
-      
-      final UploadTask uploadTask = ref.putFile(imageFile);
+
+      final UploadTask uploadTask;
+
+      if (kIsWeb) {
+        // Na web, usar putData() com bytes
+        if (imageBytes != null) {
+          uploadTask = ref.putData(imageBytes);
+        } else {
+          return null;
+        }
+      } else {
+        // No mobile, usar putFile()
+        if (imageFile != null) {
+          uploadTask = ref.putFile(imageFile);
+        } else {
+          return null;
+        }
+      }
+
       final TaskSnapshot snapshot = await uploadTask;
-      
       final String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;
     } catch (e) {
@@ -147,7 +169,7 @@ class UserService {
         'photoURL': firebaseUser.photoURL ?? '',
         'bio': '',
         'approved': false,  // Novo usuário precisa aprovação
-        'emailVerified': false,
+        'blocked': false,
         'createdAt': FieldValue.serverTimestamp(),
         'lastLogin': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));

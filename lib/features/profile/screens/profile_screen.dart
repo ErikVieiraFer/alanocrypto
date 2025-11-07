@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -109,10 +111,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
 
-      final imageUrl = await _userService.uploadProfileImage(
-        File(image.path),
-        user.uid,
-      );
+      String? imageUrl;
+
+      if (kIsWeb) {
+        // Na web, ler os bytes do XFile
+        final Uint8List imageBytes = await image.readAsBytes();
+        imageUrl = await _userService.uploadProfileImage(
+          imageBytes: imageBytes,
+          userId: user.uid,
+        );
+      } else {
+        // No mobile, usar File normalmente
+        imageUrl = await _userService.uploadProfileImage(
+          imageFile: File(image.path),
+          userId: user.uid,
+        );
+      }
 
       if (mounted) Navigator.pop(context);
 

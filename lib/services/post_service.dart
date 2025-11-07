@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:uuid/uuid.dart';
 import '../models/post_model.dart';
 import '../models/notification_model.dart';
@@ -30,17 +31,22 @@ class PostService {
     try {
       final String fileName = '${_uuid.v4()}.jpg';
       final Reference ref = _storage.ref().child('posts/$fileName');
-      
+
       UploadTask uploadTask;
-      
-      if (imageBytes != null) {
-        uploadTask = ref.putData(imageBytes);
-      } else if (imageFile != null) {
-        uploadTask = ref.putFile(imageFile);
+
+      if (kIsWeb) {
+        // Na web, sempre usar putData com bytes
+        final Uint8List data = imageBytes ?? await imageFile!.readAsBytes();
+        uploadTask = ref.putData(data);
       } else {
-        return null;
+        // No mobile, usar putFile
+        if (imageFile != null) {
+          uploadTask = ref.putFile(imageFile);
+        } else {
+          return null;
+        }
       }
-      
+
       final TaskSnapshot snapshot = await uploadTask;
       final String downloadUrl = await snapshot.ref.getDownloadURL();
       return downloadUrl;

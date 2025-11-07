@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../services/auth_service.dart';
 import '../../../services/user_service.dart';
 import '../../../theme/app_theme.dart';
 
@@ -17,7 +16,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = AuthService();
   final _userService = UserService();
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -52,14 +50,7 @@ class _SignupScreenState extends State<SignupScreen> {
         );
 
         if (mounted) {
-          Navigator.pushReplacementNamed(
-            context,
-            '/email-verification',
-            arguments: {
-              'email': _emailController.text.trim(),
-              'displayName': _nameController.text.trim(),
-            },
-          );
+          Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       }
     } on FirebaseAuthException catch (e) {
